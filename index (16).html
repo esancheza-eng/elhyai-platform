@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ElhyAI Capacitaciones – Aprende con Inteligencia Artificial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;background:#f7f9fc;color:#1c1d1f;line-height:1.6;overflow-x:hidden}
+    h1,h2,h3,h4{font-family:'Syne',sans-serif;line-height:1.2}
+    a{text-decoration:none;color:inherit}
+    ul{list-style:none}
+    button{font-family:inherit;cursor:pointer;border:none;outline:none}
+    .container{max-width:1200px;margin:0 auto;padding:0 1.5rem}
+    :root{--primary:#1e3a5f;--accent:#c9921a;--accent2:#e8a820;--green:#1a7a34;--border:#d1d7dc;--grey-1:#6a6f73;--grey-2:#3d3d3d;--shadow:0 2px 8px rgba(0,0,0,.08);--shadow-lg:0 8px 28px rgba(0,0,0,.12)}
+
+    /* NAV */
+    .navbar{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;gap:1.25rem;height:66px}
+    .nav-logo{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;color:var(--primary);white-space:nowrap}
+    .nav-logo span{color:var(--accent)}
+    .nav-search{flex:1;max-width:480px;display:flex;align-items:center;background:#f7f9fc;border:1.5px solid var(--border);border-radius:99px;padding:.45rem 1.1rem;gap:.5rem}
+    .nav-search input{border:none;background:none;outline:none;font-family:'Inter',sans-serif;font-size:.875rem;color:var(--grey-2);flex:1}
+    .nav-search i{color:var(--grey-1);font-size:.85rem}
+    .nav-links{display:flex;gap:.25rem;align-items:center;margin-left:auto}
+    .nav-links a{font-size:.85rem;color:var(--grey-2);font-weight:500;padding:.4rem .75rem;border-radius:4px;transition:background .2s}
+    .nav-links a:hover{background:#f0f4f8}
+    .btn-nl{padding:.48rem 1.1rem;border-radius:4px;border:1.5px solid var(--primary);color:var(--primary);font-weight:600;font-size:.85rem;background:none;transition:all .2s}
+    .btn-nl:hover{background:var(--primary);color:#fff}
+    .btn-nr{padding:.48rem 1.1rem;border-radius:4px;background:var(--primary);color:#fff;font-weight:600;font-size:.85rem;transition:opacity .2s}
+    .btn-nr:hover{opacity:.88}
+    .nav-toggle{display:none;background:none;font-size:1.2rem;color:var(--primary)}
+
+    /* HERO */
+    .hero{background:linear-gradient(135deg,#1e3a5f 0%,#0c2040 100%);color:#fff;padding:4.5rem 0 3.5rem}
+    .hero-inner{max-width:1200px;margin:0 auto;padding:0 1.5rem}
+    .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(232,168,32,.18);border:1px solid rgba(232,168,32,.35);color:var(--accent2);font-size:.73rem;font-weight:700;padding:.3rem .85rem;border-radius:99px;margin-bottom:1.25rem;text-transform:uppercase;letter-spacing:1.2px}
+    .hero h1{font-size:clamp(1.85rem,3.5vw,2.65rem);font-weight:800;margin-bottom:.9rem;max-width:680px}
+    .hero h1 span{color:var(--accent2)}
+    .hero-desc{font-size:.95rem;color:rgba(255,255,255,.78);margin-bottom:1.75rem;max-width:580px;line-height:1.7}
+    .hero-stats{display:flex;gap:2.5rem;margin-bottom:2rem;flex-wrap:wrap}
+    .hstat-val{font-family:'Syne',sans-serif;font-size:1.45rem;font-weight:800;color:var(--accent2)}
+    .hstat-lbl{font-size:.73rem;color:rgba(255,255,255,.6);margin-top:.1rem}
+    .hero-actions{display:flex;gap:.85rem;flex-wrap:wrap}
+    .btn-hp{padding:.8rem 1.85rem;border-radius:4px;background:var(--accent);color:#fff;font-weight:700;font-size:.9rem;display:flex;align-items:center;gap:.45rem;transition:all .25s}
+    .btn-hp:hover{background:var(--accent2);transform:translateY(-1px)}
+    .btn-hs{padding:.8rem 1.85rem;border-radius:4px;border:1.75px solid rgba(255,255,255,.35);color:#fff;font-weight:600;font-size:.9rem;background:none;transition:all .25s}
+    .btn-hs:hover{border-color:#fff;background:rgba(255,255,255,.09)}
+
+    /* TRUST BAR */
+    .trust-bar{background:#fff;border-bottom:1px solid var(--border);padding:.9rem 0}
+    .trust-inner{max-width:1200px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;justify-content:center}
+    .trust-item{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--grey-1)}
+    .trust-item i{color:var(--green);font-size:.85rem}
+
+    /* CATEGORIES */
+    .cats-section{background:#fff;padding:1.25rem 0;border-bottom:1px solid var(--border)}
+    .cats{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+    .cat-label{font-size:.8rem;font-weight:700;color:var(--grey-1);margin-right:.5rem;white-space:nowrap}
+    .cat-chip{padding:.42rem 1.1rem;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:.82rem;font-weight:500;color:var(--grey-2);cursor:pointer;transition:all .2s}
+    .cat-chip:hover,.cat-chip.active{background:var(--primary);border-color:var(--primary);color:#fff}
+
+    /* SECTION */
+    .section{padding:3.5rem 0}
+    .section-alt{background:#fff}
+    .section-header{margin-bottom:2rem}
+    .section-header h2{font-size:clamp(1.35rem,2.5vw,1.75rem);font-weight:800;color:var(--primary);margin-bottom:.4rem}
+    .section-header p{color:var(--grey-1);font-size:.88rem}
+    .section-header-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
+    .section-header-row h2{font-size:clamp(1.35rem,2.5vw,1.75rem);font-weight:800;color:var(--primary)}
+    .sec-link{font-size:.85rem;color:var(--accent);font-weight:600;white-space:nowrap}
+    .sec-link:hover{text-decoration:underline}
+    .slabel{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:.3rem}
+
+    /* COURSE CARDS — Santander style */
+    .courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:1.25rem}
+    .course-card{background:#fff;border-radius:8px;border:1px solid var(--border);overflow:hidden;transition:all .25s;cursor:pointer;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+    .course-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px);border-color:#b0b8c4}
+    .course-thumb{height:158px;overflow:hidden;position:relative}
+    .course-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .35s}
+    .course-card:hover .course-thumb img{transform:scale(1.04)}
+    .course-thumb-emoji{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3.5rem}
+    .course-provider{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem .35rem;border-bottom:1px solid #f0f2f5}
+    .provider-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .provider-name{font-size:.72rem;font-weight:600;color:var(--grey-1);text-transform:uppercase;letter-spacing:.8px}
+    .course-body{padding:.85rem 1rem;flex:1;display:flex;flex-direction:column}
+    .course-title{font-family:'Syne',sans-serif;font-size:.92rem;font-weight:700;color:var(--primary);margin-bottom:.5rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .course-type{font-size:.72rem;color:var(--grey-1);margin-top:auto;padding-top:.5rem;display:flex;align-items:center;justify-content:space-between}
+    .course-rating-row{display:flex;align-items:center;gap:.3rem;margin-bottom:.4rem}
+    .cstars{color:#d97706;font-size:.72rem}
+    .cscore{font-size:.75rem;font-weight:700;color:var(--grey-2)}
+    .ccnt{font-size:.72rem;color:var(--grey-1)}
+    .course-meta-row{display:flex;gap:.75rem}
+    .course-meta-row span{font-size:.73rem;color:var(--grey-1);display:flex;align-items:center;gap:.25rem}
+
+    /* STEPS */
+    .steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2rem}
+    .step-item{display:flex;flex-direction:column;align-items:center;text-align:center}
+    .step-num{width:52px;height:52px;border-radius:50%;background:var(--primary);color:#fff;font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;display:grid;place-items:center;margin-bottom:1rem}
+    .step-item h3{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:var(--primary);margin-bottom:.45rem}
+    .step-item p{font-size:.82rem;color:var(--grey-1);line-height:1.6}
+
+    /* FEATURES */
+    .feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem}
+    .feat-card{padding:1.5rem;background:#fff;border-radius:8px;border:1px solid var(--border);box-shadow:var(--shadow)}
+    .feat-icon{width:46px;height:46px;border-radius:8px;background:#eef2f9;display:grid;place-items:center;font-size:1.2rem;color:var(--primary);margin-bottom:.9rem}
+    .feat-card h3{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;color:var(--primary);margin-bottom:.4rem}
+    .feat-card p{font-size:.8rem;color:var(--grey-1);line-height:1.6}
+
+    /* TESTIMONIALS */
+    .test-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.25rem}
+    .test-card{background:#fff;border-radius:8px;border:1px solid var(--border);padding:1.35rem;box-shadow:var(--shadow)}
+    .test-stars{color:#d97706;font-size:.82rem;margin-bottom:.65rem}
+    .test-text{font-size:.85rem;color:var(--grey-2);line-height:1.65;margin-bottom:.9rem;font-style:italic}
+    .test-author{display:flex;align-items:center;gap:.7rem}
+    .test-av{width:34px;height:34px;border-radius:50%;background:var(--primary);display:grid;place-items:center;font-size:.8rem;color:#fff;font-weight:700;flex-shrink:0}
+    .test-name{font-size:.82rem;font-weight:600;color:var(--primary)}
+    .test-role{font-size:.7rem;color:var(--grey-1)}
+
+    /* CTA */
+    .cta-section{background:linear-gradient(135deg,#1e3a5f,#0c2040);color:#fff;padding:3.5rem 0;text-align:center}
+    .cta-section h2{font-size:clamp(1.4rem,3vw,2rem);font-weight:800;margin-bottom:.85rem}
+    .cta-section p{color:rgba(255,255,255,.78);margin-bottom:1.75rem;font-size:.9rem}
+    .btn-cta{display:inline-flex;align-items:center;gap:.5rem;padding:.85rem 2.25rem;background:var(--accent);color:#fff;font-weight:700;font-size:.95rem;border-radius:4px;transition:all .25s}
+    .btn-cta:hover{background:var(--accent2);transform:translateY(-2px)}
+
+    /* FOOTER */
+    .footer{background:#1c1d1f;color:#9b9b9b;padding:2.75rem 0 1.25rem}
+    .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:2rem;margin-bottom:2rem}
+    .fbrand{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:.65rem}
+    .fbrand span{color:var(--accent2)}
+    .fdesc{font-size:.8rem;line-height:1.65;max-width:260px}
+    .fcontact{margin-top:.9rem;display:flex;flex-direction:column;gap:.4rem}
+    .fcontact a{color:var(--accent2);font-size:.8rem;display:flex;align-items:center;gap:.45rem}
+    .fcontact a:hover{color:#fff}
+    .fcol-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#fff;margin-bottom:.85rem}
+    .flinks{display:flex;flex-direction:column;gap:.45rem}
+    .flinks a{font-size:.8rem;color:#9b9b9b;transition:color .2s}
+    .flinks a:hover{color:#fff}
+    .footer-bottom{padding-top:1.25rem;border-top:1px solid #3d3d3d;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+    .footer-bottom p{font-size:.75rem}
+
+    /* MODAL */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
+    .modal-overlay.open{display:flex}
+    .modal{background:#fff;border-radius:8px;width:100%;max-width:660px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+    .modal-head{background:var(--primary);color:#fff;padding:1.75rem;position:relative}
+    .modal-close{position:absolute;top:.85rem;right:.85rem;background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.9rem;display:grid;place-items:center}
+    .modal-cat{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent2);margin-bottom:.4rem}
+    .modal-title{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:.6rem}
+    .modal-desc{font-size:.85rem;color:rgba(255,255,255,.82);line-height:1.65}
+    .modal-body{padding:1.5rem}
+    .mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;background:#f7f9fc;border-radius:6px;padding:1.1rem;margin-bottom:1.35rem}
+    .mstat{text-align:center}
+    .mstat-val{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;color:var(--primary)}
+    .mstat-lbl{font-size:.7rem;color:var(--grey-1)}
+    .msec{font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700;color:var(--primary);margin-bottom:.65rem;display:flex;align-items:center;gap:.4rem}
+    .msec i{color:var(--accent)}
+    .mincludes{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:1.25rem}
+    .minclude{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--grey-2)}
+    .minclude i{color:var(--green);font-size:.7rem}
+    .mmodules{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:1.35rem}
+    .mmodule{display:flex;align-items:center;gap:.65rem;padding:.65rem .9rem;border-bottom:1px solid var(--border);font-size:.8rem;color:var(--grey-2)}
+    .mmodule:last-child{border:none}
+    .mnum{width:20px;height:20px;border-radius:50%;background:#f0f2f5;border:1.5px solid var(--border);display:grid;place-items:center;font-size:.6rem;font-weight:700;color:var(--grey-1);flex-shrink:0}
+    .mdur{margin-left:auto;font-size:.7rem;color:var(--grey-1)}
+    .btn-enroll-m{width:100%;padding:.9rem;background:var(--accent);color:#fff;font-weight:700;font-size:.95rem;border-radius:4px;display:flex;align-items:center;justify-content:center;gap:.45rem;transition:background .2s}
+    .btn-enroll-m:hover{background:var(--accent2)}
+
+    /* WA */
+    .wa-float{position:fixed;bottom:1.75rem;right:1.75rem;width:54px;height:54px;border-radius:50%;background:#25d366;color:#fff;display:grid;place-items:center;font-size:1.45rem;box-shadow:0 4px 16px rgba(37,211,102,.4);z-index:90;transition:transform .25s}
+    .wa-float:hover{transform:scale(1.1)}
+
+    @media(max-width:1024px){.footer-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:768px){.nav-search,.nav-links{display:none}.nav-toggle{display:block}.footer-grid{grid-template-columns:1fr}.mincludes{grid-template-columns:1fr}.mstats{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">ElhyAI <span>Capacitaciones</span></a>
+    <div class="nav-search">
+      <i class="fas fa-search"></i>
+      <input type="text" placeholder="Buscar cursos..." id="nav-q" oninput="filterCourses(this.value)" />
+    </div>
+    <div class="nav-links">
+      <a href="#cursos">Cursos</a>
+      <a href="#como-funciona">¿Cómo funciona?</a>
+      <a href="validar.html">Verificar certificado</a>
+    </div>
+    <button class="btn-nl" onclick="location.href='login.html'">Iniciar sesión</button>
+    <button class="btn-nr" onclick="location.href='registro.html'">Registrarse</button>
+    <button class="nav-toggle" id="nav-toggle"><i class="fas fa-bars"></i></button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge"><i class="fas fa-robot"></i> Impulsado por Inteligencia Artificial</div>
+    <h1>Aprende con <span>ElhyAI</span> y transforma tu futuro profesional</h1>
+    <p class="hero-desc">Capacitaciones online en IA, tecnología y negocios digitales. Certificados verificables, cursos actualizados y soporte directo para Ecuador y Latinoamérica.</p>
+    <div class="hero-stats">
+      <div><div class="hstat-val">+850</div><div class="hstat-lbl">Estudiantes activos</div></div>
+      <div><div class="hstat-val">12</div><div class="hstat-lbl">Cursos disponibles</div></div>
+      <div><div class="hstat-val">4.9★</div><div class="hstat-lbl">Calificación promedio</div></div>
+      <div><div class="hstat-val">100%</div><div class="hstat-lbl">Online y flexible</div></div>
+    </div>
+    <div class="hero-actions">
+      <a href="#cursos" class="btn-hp"><i class="fas fa-graduation-cap"></i> Explorar cursos</a>
+      <a href="registro.html" class="btn-hs">Registrarse gratis</a>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-inner">
+    <div class="trust-item"><i class="fas fa-check-circle"></i> Certificados verificables con QR</div>
+    <div class="trust-item"><i class="fas fa-check-circle"></i> Video HD acceso de por vida</div>
+    <div class="trust-item"><i class="fas fa-check-circle"></i> Soporte WhatsApp 0989938910</div>
+    <div class="trust-item"><i class="fas fa-check-circle"></i> Instructor experto certificado</div>
+    <div class="trust-item"><i class="fas fa-check-circle"></i> 100% aplicado a Ecuador</div>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<div class="cats-section">
+  <div class="container">
+    <div class="cats">
+      <span class="cat-label">Categorías:</span>
+      <button class="cat-chip active" onclick="filterByCategory('todos',this)">Todos</button>
+      <button class="cat-chip" onclick="filterByCategory('ia',this)">Inteligencia Artificial</button>
+      <button class="cat-chip" onclick="filterByCategory('marketing',this)">Marketing Digital</button>
+      <button class="cat-chip" onclick="filterByCategory('herramientas',this)">Herramientas</button>
+      <button class="cat-chip" onclick="filterByCategory('datos',this)">Datos y Finanzas</button>
+      <button class="cat-chip" onclick="filterByCategory('cobranza',this)">Cobranza</button>
+    </div>
+  </div>
+</div>
+
+<!-- COURSES -->
+<section class="section" id="cursos">
+  <div class="container">
+    <div class="section-header-row">
+      <div>
+        <div class="slabel">Catálogo completo</div>
+        <h2>Nuestros cursos</h2>
+      </div>
+      <a href="#cursos" class="sec-link">Ver todos los cursos →</a>
+    </div>
+    <div class="courses-grid" id="courses-grid"></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section section-alt" id="como-funciona">
+  <div class="container">
+    <div class="section-header" style="text-align:center">
+      <div class="slabel" style="text-align:center">Proceso</div>
+      <h2>Aprende a tu ritmo en 4 pasos</h2>
+    </div>
+    <div class="steps-grid">
+      <div class="step-item"><div class="step-num">1</div><h3>Elige tu curso</h3><p>Explora el catálogo y elige el curso que mejor se adapte a tus objetivos profesionales.</p></div>
+      <div class="step-item"><div class="step-num">2</div><h3>Crea tu cuenta</h3><p>Regístrate gratis y accede al contenido desde cualquier dispositivo, cuando quieras.</p></div>
+      <div class="step-item"><div class="step-num">3</div><h3>Aprende y practica</h3><p>Sigue los módulos en video, completa ejercicios prácticos y aplica lo aprendido.</p></div>
+      <div class="step-item"><div class="step-num">4</div><h3>Obtén tu certificado</h3><p>Recibe tu certificado PDF con QR verificable al completar el curso.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section">
+  <div class="container">
+    <div class="section-header" style="text-align:center;margin-bottom:2rem">
+      <div class="slabel" style="text-align:center">¿Por qué ElhyAI?</div>
+      <h2>Todo lo que necesitas para aprender</h2>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card"><div class="feat-icon"><i class="fas fa-play-circle"></i></div><h3>Video HD acceso de por vida</h3><p>Mira las clases cuando quieras, cuantas veces necesites, sin fecha de vencimiento.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="fas fa-certificate"></i></div><h3>Certificados con QR verificable</h3><p>Cada certificado tiene un código único que valida tu aprendizaje de forma instantánea.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="fab fa-whatsapp"></i></div><h3>Soporte directo por WhatsApp</h3><p>Resolvemos tus dudas directamente al <strong>0989938910</strong> — respuesta rápida garantizada.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="fas fa-mobile-alt"></i></div><h3>Aprende desde cualquier dispositivo</h3><p>Accede desde computadora, tablet o celular. Diseño 100% responsive y optimizado.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="fas fa-map-marker-alt"></i></div><h3>100% enfocado en Ecuador</h3><p>Contenido con ejemplos, leyes y contexto real para Ecuador y Latinoamérica.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="fas fa-sync-alt"></i></div><h3>Contenido siempre actualizado</h3><p>Cursos actualizados con las últimas tendencias en IA, tecnología y negocios.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header" style="text-align:center;margin-bottom:2rem">
+      <div class="slabel" style="text-align:center">Testimonios</div>
+      <h2>Lo que dicen nuestros estudiantes</h2>
+    </div>
+    <div class="test-grid">
+      <div class="test-card"><div class="test-stars">★★★★★</div><p class="test-text">"El curso de IA desde Cero me abrió las puertas a un nuevo mundo. Los conceptos son claros y los ejemplos muy prácticos para el negocio."</p><div class="test-author"><div class="test-av">C</div><div><div class="test-name">Carlos Mendoza</div><div class="test-role">Emprendedor, Guayaquil</div></div></div></div>
+      <div class="test-card"><div class="test-stars">★★★★★</div><p class="test-text">"Aprendí a automatizar mi negocio con ChatGPT. Ahora ahorro horas de trabajo. El soporte por WhatsApp es excelente y muy rápido."</p><div class="test-author"><div class="test-av">M</div><div><div class="test-name">María Fernanda López</div><div class="test-role">Contadora, Quito</div></div></div></div>
+      <div class="test-card"><div class="test-stars">★★★★★</div><p class="test-text">"El curso de Cobranza con IA transformó mi equipo. Las herramientas son reales y aplicables de inmediato. 100% recomendado."</p><div class="test-author"><div class="test-av">A</div><div><div class="test-name">Andrés Vásquez</div><div class="test-role">Gerente Financiero, Milagro</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2>¿Listo para transformar tu carrera?</h2>
+    <p>Únete a más de 850 estudiantes que ya están aprendiendo con ElhyAI Capacitaciones</p>
+    <a href="registro.html" class="btn-cta"><i class="fas fa-rocket"></i> Comenzar ahora gratis</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="fbrand">ElhyAI <span>Capacitaciones</span></div>
+        <p class="fdesc">Plataforma de capacitaciones con IA para Ecuador y Latinoamérica. Aprende, certifícate y transforma tu futuro profesional.</p>
+        <div class="fcontact">
+          <a href="tel:0989938910"><i class="fas fa-phone"></i> 0989938910</a>
+          <a href="mailto:info@elhyai.com"><i class="fas fa-envelope"></i> info@elhyai.com</a>
+          <a href="https://wa.me/593989938910"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+        </div>
+      </div>
+      <div>
+        <p class="fcol-title">Plataforma</p>
+        <ul class="flinks">
+          <li><a href="#cursos">Todos los cursos</a></li>
+          <li><a href="login.html">Iniciar sesión</a></li>
+          <li><a href="registro.html">Registrarse gratis</a></li>
+          <li><a href="dashboard.html">Mi panel</a></li>
+          <li><a href="validar.html">Verificar certificado</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="fcol-title">Empresa</p>
+        <ul class="flinks">
+          <li><a href="#como-funciona">¿Cómo funciona?</a></li>
+          <li><a href="terminos.html">Términos de uso</a></li>
+          <li><a href="terminos.html#privacidad">Privacidad</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="fcol-title">Contacto</p>
+        <ul class="flinks">
+          <li><a href="tel:0989938910">0989938910</a></li>
+          <li><a href="mailto:info@elhyai.com">info@elhyai.com</a></li>
+          <li><a href="https://wa.me/593989938910">WhatsApp directo</a></li>
+          <li><a>Milagro, Guayas, Ecuador</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 ElhyAI Capacitaciones – Todos los derechos reservados</p>
+      <p>Hecho con ❤️ en Ecuador</p>
+    </div>
+  </div>
+</footer>
+
+<a href="https://wa.me/593989938910?text=Hola%20ElhyAI%2C%20quiero%20información%20sobre%20los%20cursos" class="wa-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      <div class="modal-cat" id="m-cat"></div>
+      <div class="modal-title" id="m-title"></div>
+      <div class="modal-desc" id="m-desc"></div>
+    </div>
+    <div class="modal-body">
+      <div class="mstats">
+        <div class="mstat"><div class="mstat-val" id="m-dur"></div><div class="mstat-lbl">Duración</div></div>
+        <div class="mstat"><div class="mstat-val" id="m-mods"></div><div class="mstat-lbl">Módulos</div></div>
+        <div class="mstat"><div class="mstat-val" id="m-rat"></div><div class="mstat-lbl">Calificación</div></div>
+      </div>
+      <div class="msec"><i class="fas fa-check-circle"></i> ¿Qué incluye?</div>
+      <div class="mincludes" id="m-inc"></div>
+      <div class="msec"><i class="fas fa-list-ul"></i> Contenido del curso</div>
+      <div class="mmodules" id="m-mods-list"></div>
+      <button class="btn-enroll-m" onclick="enrollNow()"><i class="fas fa-graduation-cap"></i> Inscribirme ahora</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase.js"></script>
+<script>
+/* Unsplash images for course thumbs */
+const IMGS={
+  'ia':['https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500&q=75','https://images.unsplash.com/photo-1676299081847-824916de030a?w=500&q=75','https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=500&q=75'],
+  'marketing':['https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=500&q=75','https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&q=75','https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500&q=75'],
+  'herramientas':['https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=500&q=75','https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500&q=75','https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=500&q=75'],
+  'datos':['https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&q=75','https://images.unsplash.com/photo-1579621970795-87facc2f976d?w=500&q=75'],
+  'cobranza':['https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=500&q=75'],
+};
+const COLORS={'ia':'#1e3a5f','marketing':'#7c3aed','herramientas':'#0284c7','datos':'#d97706','cobranza':'#dc2626'};
+
+const COURSES=[
+  {id:'ia-cero',emoji:'🤖',category:'ia',title:'Inteligencia Artificial desde Cero',instructor:'Ing. Elhy Christian Sánchez',desc:'Aprende los fundamentos de la IA, machine learning y redes neuronales con ejemplos prácticos reales aplicados al mundo empresarial ecuatoriano.',duration:'18h',modules:10,level:'Principiante',rating:'4.9',reviews:128,includes:['Video HD acceso de por vida','Certificado con QR','Ejercicios prácticos','Soporte WhatsApp','Material descargable','Proyecto final real'],modulesDetail:['¿Qué es la Inteligencia Artificial?','Machine Learning básico','Redes Neuronales','Python para IA','Herramientas IA 2025','IA en negocios reales','Automatización con IA','Casos de estudio Ecuador','Ética en IA','Certificación y proyecto final']},
+  {id:'chatgpt-auto',emoji:'⚡',category:'ia',title:'Automatización con ChatGPT',instructor:'Ing. Elhy Christian Sánchez',desc:'Crea flujos de trabajo automatizados usando ChatGPT, Make, Zapier y APIs para multiplicar tu productividad empresarial.',duration:'16h',modules:9,level:'Intermedio',rating:'4.9',reviews:110,includes:['Video HD acceso de por vida','Certificado con QR','Prompts avanzados','Automatizaciones reales','API keys guiadas','Soporte prioritario'],modulesDetail:['ChatGPT API setup','Prompt Engineering avanzado','Integración con Make','Zapier + ChatGPT','Bots automatizados','Workflows de negocio','IA para ventas','Soporte con IA','Proyecto final']},
+  {id:'python-ia',emoji:'🐍',category:'ia',title:'Python para Inteligencia Artificial',instructor:'Ing. Elhy Christian Sánchez',desc:'Aprende Python desde cero y aplícalo en proyectos reales de machine learning y deep learning.',duration:'25h',modules:14,level:'Intermedio',rating:'4.9',reviews:72,includes:['Video HD acceso de por vida','Certificado con QR','Código fuente','Notebooks Jupyter','Proyectos reales','Soporte técnico'],modulesDetail:['Python básico','Estructuras de datos','POO en Python','NumPy y Pandas','Matplotlib','Scikit-learn','Regresión lineal','Clasificación','Clustering','Redes Neuronales','TensorFlow básico','NLP básico','Visión artificial','Proyecto final']},
+  {id:'marketing-ia',emoji:'📱',category:'marketing',title:'Marketing Digital con IA',instructor:'Ing. Elhy Christian Sánchez',desc:'Domina las estrategias de marketing potenciadas con IA: contenido, ads, funnels y analítica avanzada.',duration:'14h',modules:8,level:'Principiante',rating:'4.8',reviews:94,includes:['Video HD acceso de por vida','Certificado con QR','Plantillas descargables','Soporte WhatsApp','Casos reales','Comunidad privada'],modulesDetail:['Fundamentos marketing digital','SEO con IA','Creación de contenido con IA','Publicidad inteligente','Email marketing automático','Funnels de conversión','Analítica y KPIs','Proyecto final']},
+  {id:'ventas-ia',emoji:'🎯',category:'marketing',title:'Ventas Digitales con IA',instructor:'Ing. Elhy Christian Sánchez',desc:'Técnicas avanzadas de ventas consultivas, cierre efectivo y herramientas IA para multiplicar conversiones.',duration:'15h',modules:8,level:'Intermedio',rating:'4.8',reviews:63,includes:['Video HD acceso de por vida','Certificado con QR','Scripts de ventas','CRM configurado','Role-play grabado','Soporte WhatsApp'],modulesDetail:['Psicología del comprador','Propuesta de valor','Prospección digital','WhatsApp para ventas','LinkedIn prospecting','Cierre de ventas','Manejo de objeciones','IA en CRM']},
+  {id:'ecommerce',emoji:'🛒',category:'marketing',title:'E-Commerce con IA',instructor:'Ing. Elhy Christian Sánchez',desc:'Crea y escala tu tienda online usando IA para logística, atención al cliente y estrategias de crecimiento.',duration:'18h',modules:10,level:'Avanzado',rating:'4.9',reviews:45,includes:['Video HD acceso de por vida','Certificado con QR','Shopify setup','IA configurada','Ads incluidos','Soporte premium'],modulesDetail:['Validación de producto','Tienda con Shopify','SEO e-commerce','Descripciones con IA','Ads con IA','Logística inteligente','Customer service IA','Analítica avanzada','Escalar ventas','Proyecto real']},
+  {id:'excel-datos',emoji:'📊',category:'datos',title:'Excel y Análisis de Datos',instructor:'Ing. Elhy Christian Sánchez',desc:'Domina Excel desde tablas dinámicas hasta Power BI y análisis predictivo con IA integrada.',duration:'20h',modules:11,level:'Intermedio',rating:'4.8',reviews:83,includes:['Video HD acceso de por vida','Certificado con QR','Datasets reales','Power BI incluido','Ejercicios prácticos','Acceso de por vida'],modulesDetail:['Excel avanzado','Fórmulas complejas','Tablas dinámicas','Dashboards','Macros VBA','Power Query','Power BI básico','Power BI avanzado','Estadística básica','Análisis predictivo','Proyecto final']},
+  {id:'finanzas',emoji:'💳',category:'datos',title:'Finanzas Personales e Inversión',instructor:'Ing. Elhy Christian Sánchez',desc:'Gestiona tu dinero de forma inteligente: presupuesto, deudas, inversión y libertad financiera.',duration:'12h',modules:7,level:'Principiante',rating:'4.6',reviews:88,includes:['Video HD acceso de por vida','Certificado con QR','Calculadoras incluidas','Plan financiero','Plantillas Excel','Acceso de por vida'],modulesDetail:['Diagnóstico financiero','Presupuesto base 0','Eliminación de deudas','Ahorro sistemático','Inversión básica','Fondos y ETFs','Libertad financiera']},
+  {id:'google-drive',emoji:'💾',category:'herramientas',title:'Google Drive Profesional',instructor:'Ing. Elhy Christian Sánchez',desc:'Organiza, colabora y automatiza con Google Drive, Docs, Sheets, Slides y Google Apps Script.',duration:'8h',modules:6,level:'Principiante',rating:'4.7',reviews:67,includes:['Video HD acceso de por vida','Certificado con QR','Plantillas Google','Scripts incluidos','Soporte WhatsApp','Acceso de por vida'],modulesDetail:['Google Drive básico','Google Docs avanzado','Google Sheets con fórmulas','Google Slides profesional','Apps Script automatización','Proyectos colaborativos']},
+  {id:'canva-ia',emoji:'🎨',category:'herramientas',title:'Diseño Digital con Canva e IA',instructor:'Ing. Elhy Christian Sánchez',desc:'Crea contenido visual impactante para redes sociales y negocios usando Canva Pro e IA de diseño.',duration:'10h',modules:7,level:'Principiante',rating:'4.7',reviews:101,includes:['Video HD acceso de por vida','Certificado con QR','Templates premium','Recursos gráficos','Canva Pro tips','Acceso de por vida'],modulesDetail:['Canva interface','Branding digital','Social media design','Presentaciones profesionales','Logos e identidad','IA generativa en diseño','Portfolio final']},
+  {id:'productivity',emoji:'⏱️',category:'herramientas',title:'Productividad con IA',instructor:'Ing. Elhy Christian Sánchez',desc:'Organiza tu vida y trabajo con Notion, IA generativa y sistemas de productividad probados.',duration:'9h',modules:6,level:'Principiante',rating:'4.7',reviews:77,includes:['Video HD acceso de por vida','Certificado con QR','Templates Notion','Sistema GTD','Workflows IA','Soporte WhatsApp'],modulesDetail:['GTD metodología','Notion workspace','Gestión de tareas','IA para focus','Calendario inteligente','Sistema personal']},
+  {id:'cobranza-ia',emoji:'💰',category:'cobranza',title:'Cobranza Inteligente con IA',instructor:'Ing. Elhy Christian Sánchez',desc:'Sistema profesional de gestión de cobranzas: chatbots, segmentación de cartera y estrategias de negociación para Ecuador.',duration:'22h',modules:12,level:'Avanzado',rating:'5.0',reviews:56,includes:['Video HD acceso de por vida','Certificado con QR','Herramientas incluidas','Plantillas Excel','Chatbot configurado','Soporte prioritario'],modulesDetail:['Marco legal Ecuador','Segmentación de cartera','Estrategias de contacto','WhatsApp masivo','Chatbot de cobranza','Excel para cobranza','Negociación efectiva','Acuerdos de pago','KPIs y métricas','Gestión de campo','Reportes automáticos','Certificación']},
+];
+
+let currentCat='todos';
+const imgCounters={};
+
+function getImg(cat){
+  const arr=IMGS[cat]||[];
+  if(!arr.length)return null;
+  imgCounters[cat]=(imgCounters[cat]||0)%arr.length;
+  return arr[imgCounters[cat]++];
+}
+
+function renderCourses(filter=''){
+  const grid=document.getElementById('courses-grid');
+  const list=COURSES.filter(c=>{
+    const mc=currentCat==='todos'||c.category===currentCat;
+    const ms=!filter||c.title.toLowerCase().includes(filter.toLowerCase())||c.desc.toLowerCase().includes(filter.toLowerCase());
+    return mc&&ms;
+  });
+  // reset image counters
+  Object.keys(imgCounters).forEach(k=>delete imgCounters[k]);
+  if(!list.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--grey-1)"><i class="fas fa-search" style="font-size:2rem;margin-bottom:1rem;display:block"></i>No se encontraron cursos</div>';return;}
+  grid.innerHTML=list.map(c=>{
+    const img=getImg(c.category);
+    const color=COLORS[c.category]||'#1e3a5f';
+    const thumb=img
+      ?`<img src="${img}" alt="${c.title}" loading="lazy" />`
+      :`<div class="course-thumb-emoji" style="background:${color}12">${c.emoji}</div>`;
+    return `
+    <div class="course-card" onclick="openModal('${c.id}')">
+      <div class="course-thumb" style="background:${color}15">${thumb}</div>
+      <div class="course-provider">
+        <div class="provider-dot" style="background:${color}"></div>
+        <span class="provider-name">ElhyAI Capacitaciones</span>
+      </div>
+      <div class="course-body">
+        <div class="course-title">${c.title}</div>
+        <div class="course-rating-row">
+          <span class="cstars">★★★★★</span>
+          <span class="cscore">${c.rating}</span>
+          <span class="ccnt">(${c.reviews} reseñas)</span>
+        </div>
+        <div class="course-meta-row">
+          <span><i class="fas fa-clock"></i>${c.duration}</span>
+          <span><i class="fas fa-layer-group"></i>${c.modules} módulos</span>
+          <span><i class="fas fa-signal"></i>${c.level}</span>
+        </div>
+        <div class="course-type"><span>Curso online</span><span style="color:var(--accent);font-weight:600">Ver detalles →</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterByCategory(cat,el){
+  currentCat=cat;
+  document.querySelectorAll('.cat-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderCourses(document.getElementById('nav-q').value);
+}
+function filterCourses(v){renderCourses(v);}
+
+function openModal(id){
+  const c=COURSES.find(x=>x.id===id);if(!c)return;
+  document.getElementById('m-cat').textContent=c.emoji+' '+c.category.toUpperCase()+' · '+c.level;
+  document.getElementById('m-title').textContent=c.title;
+  document.getElementById('m-desc').textContent=c.desc;
+  document.getElementById('m-dur').textContent=c.duration;
+  document.getElementById('m-mods').textContent=c.modules;
+  document.getElementById('m-rat').textContent=c.rating+'★';
+  document.getElementById('m-inc').innerHTML=c.includes.map(i=>`<div class="minclude"><i class="fas fa-check"></i>${i}</div>`).join('');
+  document.getElementById('m-mods-list').innerHTML=c.modulesDetail.map((m,i)=>`<div class="mmodule"><div class="mnum">${i+1}</div><span>${m}</span><span class="mdur">${Math.floor(parseInt(c.duration)*60/c.modules)}min</span></div>`).join('');
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modal-overlay'))return;
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function enrollNow(){location.href=localStorage.getItem('elhyai_user')?'dashboard.html':'registro.html';}
+
+ElhyFirebase.onAuthStateChanged(user=>{
+  if(user){
+    const lb=document.querySelector('.btn-nl');
+    const rb=document.querySelector('.btn-nr');
+    if(lb)lb.outerHTML=`<span style="font-size:.85rem;color:var(--primary);font-weight:500">Hola, ${user.displayName?.split(' ')[0]||'Estudiante'}</span>`;
+    if(rb){rb.textContent='Mi Panel';rb.onclick=()=>location.href='dashboard.html';}
+  }
+});
+
+document.addEventListener('DOMContentLoaded',()=>{
+  renderCourses();
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+});
+</script>
+</body>
+</html>
