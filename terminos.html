@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Términos y Privacidad – ElhyAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    .legal-page { max-width: 860px; margin: 0 auto; padding: 120px 1.5rem 5rem; }
+
+    /* Tabs */
+    .legal-tabs {
+      display: flex; gap: 0.5rem;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+    }
+    .legal-tab {
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px 8px 0 0;
+      border: 1px solid transparent;
+      border-bottom: none;
+      background: transparent;
+      color: var(--grey);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s;
+      margin-bottom: -1px;
+    }
+    .legal-tab.active {
+      background: var(--navy-mid);
+      border-color: rgba(201,168,76,0.15);
+      border-bottom-color: var(--navy-mid);
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .legal-tab:hover:not(.active) { color: var(--grey-light); }
+
+    /* Content panels */
+    .legal-panel { display: none; animation: fadeIn 0.3s ease; }
+    .legal-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Header */
+    .doc-header {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 2rem 2.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+    }
+    .doc-header-icon {
+      width: 56px; height: 56px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(32,96,192,0.25), rgba(201,168,76,0.1));
+      border: 1px solid rgba(201,168,76,0.2);
+      display: grid; place-items: center;
+      font-size: 1.4rem; color: var(--gold);
+      flex-shrink: 0;
+    }
+    .doc-header-text h1 { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.4rem; }
+    .doc-header-text p  { color: var(--grey-light); font-size: 0.85rem; line-height: 1.5; }
+    .doc-meta {
+      display: flex; gap: 1.5rem; margin-top: 0.75rem; flex-wrap: wrap;
+    }
+    .doc-meta-item { font-size: 0.75rem; color: var(--grey); display: flex; align-items: center; gap: 0.35rem; }
+    .doc-meta-item i { color: var(--gold); }
+
+    /* TOC */
+    .toc {
+      background: rgba(10,22,40,0.5);
+      border: 1px solid rgba(201,168,76,0.08);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .toc-title { font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); margin-bottom: 1rem; }
+    .toc-list { list-style: none; }
+    .toc-list li { padding: 0.3rem 0; }
+    .toc-list a { color: var(--grey-light); font-size: 0.85rem; transition: color 0.2s; display: flex; align-items: center; gap: 0.5rem; }
+    .toc-list a:hover { color: var(--gold); }
+    .toc-list a i { font-size: 0.6rem; color: var(--blue-glow); }
+
+    /* Sections */
+    .legal-section { margin-bottom: 2.5rem; scroll-margin-top: 100px; }
+    .section-number {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.2);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.75rem; font-weight: 700;
+      color: var(--gold);
+      margin-right: 0.6rem;
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .legal-text {
+      color: var(--grey-light);
+      font-size: 0.875rem;
+      line-height: 1.75;
+      margin-bottom: 1rem;
+    }
+    .legal-text strong { color: var(--white); }
+    .legal-list {
+      list-style: none;
+      margin: 0.75rem 0;
+    }
+    .legal-list li {
+      display: flex; align-items: flex-start; gap: 0.6rem;
+      padding: 0.35rem 0;
+      font-size: 0.875rem;
+      color: var(--grey-light);
+      line-height: 1.6;
+    }
+    .legal-list li::before {
+      content: '•';
+      color: var(--gold);
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: -1px;
+    }
+
+    /* Highlight box */
+    .highlight-box {
+      background: rgba(32,96,192,0.08);
+      border: 1px solid rgba(32,96,192,0.18);
+      border-left: 3px solid var(--blue-glow);
+      border-radius: 0 10px 10px 0;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      font-size: 0.85rem;
+      color: var(--grey-light);
+      line-height: 1.6;
+    }
+    .highlight-box.warn {
+      background: rgba(243,156,18,0.07);
+      border-color: rgba(243,156,18,0.25);
+      border-left-color: #f39c12;
+    }
+    .highlight-box i { color: var(--blue-glow); margin-right: 0.4rem; }
+    .highlight-box.warn i { color: #f39c12; }
+
+    /* Data table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin: 1rem 0;
+    }
+    .data-table th {
+      background: rgba(201,168,76,0.08);
+      color: var(--gold);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.7rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+    }
+    .data-table td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--grey-light);
+      vertical-align: top;
+    }
+    .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Contact card */
+    .contact-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    .contact-card i { font-size: 1.5rem; color: var(--gold); flex-shrink: 0; }
+    .contact-card p { font-size: 0.85rem; color: var(--grey-light); line-height: 1.5; }
+    .contact-card a { color: var(--gold); }
+    .contact-card a:hover { text-decoration: underline; }
+
+    /* Divider */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, var(--gold-dim), transparent);
+      margin: 2.5rem 0;
+      opacity: 0.2;
+    }
+
+    /* Accept button */
+    .accept-bar {
+      position: sticky;
+      bottom: 1.5rem;
+      display: flex;
+      justify-content: center;
+      z-index: 50;
+      pointer-events: none;
+    }
+    .accept-btn {
+      pointer-events: all;
+      padding: 0.85rem 2.5rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      border-radius: 99px;
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(201,168,76,0.35);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.25s;
+    }
+    .accept-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,168,76,0.45); }
+    .accept-btn.accepted {
+      background: linear-gradient(135deg, #27ae60, #219a52);
+      box-shadow: 0 8px 32px rgba(39,174,96,0.35);
+    }
+
+    @media (max-width: 600px) {
+      .doc-header { flex-direction: column; gap: 1rem; }
+      .legal-page { padding-top: 90px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">Elhy<span> Consultores</span></a>
+    <ul class="nav-menu" id="nav-menu">
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="cursos.html">Cursos</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="btn-ghost" onclick="location.href='login.html'">Iniciar Sesión</button>
+      <button class="nav-toggle" id="nav-toggle"><i class="fas fa-bars"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<main class="legal-page">
+
+  <!-- Tabs -->
+  <div class="legal-tabs">
+    <button class="legal-tab active" onclick="switchTab('terminos',this)">
+      <i class="fas fa-file-contract" style="margin-right:.4rem"></i>Términos de Servicio
+    </button>
+    <button class="legal-tab" onclick="switchTab('privacidad',this)">
+      <i class="fas fa-user-shield" style="margin-right:.4rem"></i>Política de Privacidad
+    </button>
+    <button class="legal-tab" onclick="switchTab('cookies',this)">
+      <i class="fas fa-cookie-bite" style="margin-right:.4rem"></i>Política de Cookies
+    </button>
+  </div>
+
+  <!-- ─── TÉRMINOS DE SERVICIO ─── -->
+  <div class="legal-panel active" id="panel-terminos">
+    <div class="doc-header">
+      <div class="doc-header-icon"><i class="fas fa-file-contract"></i></div>
+      <div class="doc-header-text">
+        <h1>Términos de Servicio</h1>
+        <p>Al acceder y usar la plataforma ElhyAI, aceptas estos términos en su totalidad. Léelos detenidamente antes de registrarte.</p>
+        <div class="doc-meta">
+          <span class="doc-meta-item"><i class="fas fa-calendar"></i> Última actualización: 1 de Enero, 2026</span>
+          <span class="doc-meta-item"><i class="fas fa-globe-americas"></i> Aplica en Ecuador y Latinoamérica</span>
+          <span class="doc-meta-item"><i class="fas fa-language"></i> Versión en español</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="toc">
+      <p class="toc-title"><i class="fas fa-list-ul" style="margin-right:.4rem"></i>Contenido</p>
+      <ul class="toc-list">
+        <li><a href="#t1"><i class="fas fa-chevron-right"></i> 1. Aceptación de términos</a></li>
+        <li><a href="#t2"><i class="fas fa-chevron-right"></i> 2. Descripción del servicio</a></li>
+        <li><a href="#t3"><i class="fas fa-chevron-right"></i> 3. Registro y cuenta de usuario</a></li>
+        <li><a href="#t4"><i class="fas fa-chevron-right"></i> 4. Pagos y reembolsos</a></li>
+        <li><a href="#t5"><i class="fas fa-chevron-right"></i> 5. Propiedad intelectual</a></li>
+        <li><a href="#t6"><i class="fas fa-chevron-right"></i> 6. Conducta del usuario</a></li>
+        <li><a href="#t7"><i class="fas fa-chevron-right"></i> 7. Certificados y validez</a></li>
+        <li><a href="#t8"><i class="fas fa-chevron-right"></i> 8. Limitación de responsabilidad</a></li>
+      </ul>
+    </div>
+
+    <div class="legal-section" id="t1">
+      <h2 class="section-title"><span class="section-number">1</span>Aceptación de Términos</h2>
+      <p class="legal-text">Al acceder, navegar o usar la plataforma de ElhyAI (en adelante "la Plataforma"), el usuario confirma haber leído, entendido y aceptado quedar vinculado por estos Términos de Servicio.</p>
+      <p class="legal-text">Si actúas en nombre de una empresa u organización, garantizas que tienes la autoridad para vincular a esa entidad a estos términos.</p>
+      <div class="highlight-box">
+        <i class="fas fa-info-circle"></i>
+        Si no estás de acuerdo con alguno de estos términos, te pedimos que no utilices la Plataforma. El uso continuo implica aceptación plena.
+      </div>
+    </div>
+
+    <div class="legal-section" id="t2">
+      <h2 class="section-title"><span class="section-number">2</span>Descripción del Servicio</h2>
+      <p class="legal-text">ElhyAI ofrece una plataforma de educación digital en línea con:</p>
+      <ul class="legal-list">
+        <li>Cursos en video sobre Inteligencia Artificial, tecnología y negocios digitales</li>
+        <li>Evaluaciones y quizzes interactivos por módulo</li>
+        <li>Certificados digitales con código QR verificable</li>
+        <li>Acceso a materiales descargables y recursos complementarios</li>
+        <li>Soporte mediante WhatsApp y correo electrónico</li>
+      </ul>
+      <p class="legal-text">Nos reservamos el derecho de modificar, suspender o descontinuar cualquier aspecto del servicio en cualquier momento, con o sin previo aviso, sin responsabilidad hacia los usuarios.</p>
+    </div>
+
+    <div class="legal-section" id="t3">
+      <h2 class="section-title"><span class="section-number">3</span>Registro y Cuenta de Usuario</h2>
+      <p class="legal-text">Para acceder al contenido de pago es necesario crear una cuenta con información veraz y actualizada. El usuario es responsable de:</p>
+      <ul class="legal-list">
+        <li>Mantener la confidencialidad de sus credenciales de acceso</li>
+        <li>Notificar inmediatamente cualquier uso no autorizado de su cuenta</li>
+        <li>Todas las actividades realizadas bajo su cuenta</li>
+        <li>No compartir su acceso con terceros</li>
+      </ul>
+      <div class="highlight-box warn">
+        <i class="fas fa-exclamation-triangle"></i>
+        Compartir credenciales de acceso está estrictamente prohibido y puede resultar en la cancelación inmediata de la cuenta sin reembolso.
+      </div>
+    </div>
+
+    <div class="legal-section" id="t4">
+      <h2 class="section-title"><span class="section-number">4</span>Pagos y Política de Reembolso</h2>
+      <p class="legal-text">Todos los precios están expresados en dólares estadounidenses (USD) e incluyen los impuestos aplicables en Ecuador. Los métodos de pago aceptados son:</p>
+      <ul class="legal-list">
+        <li>Tarjeta de crédito/débito (Visa, Mastercard) vía PayPhone o Stripe</li>
+        <li>Transferencia bancaria directa</li>
+        <li>PayPal</li>
+      </ul>
+      <p class="legal-text"><strong>Garantía de satisfacción:</strong> Ofrecemos reembolso completo dentro de los primeros 30 días si el curso no cumple tus expectativas, siempre que no hayas completado más del 30% del contenido.</p>
+      <div class="highlight-box">
+        <i class="fas fa-shield-alt"></i>
+        Para solicitar un reembolso, escríbenos a <strong>info@elhyai.com</strong> indicando tu número de pedido y motivo.
+      </div>
+    </div>
+
+    <div class="legal-section" id="t5">
+      <h2 class="section-title"><span class="section-number">5</span>Propiedad Intelectual</h2>
+      <p class="legal-text">Todo el contenido de la Plataforma — incluyendo videos, textos, imágenes, logotipos, diseños y materiales de curso — es propiedad exclusiva de ElhyAI o de sus licenciantes, protegido por leyes de derechos de autor nacionales e internacionales.</p>
+      <p class="legal-text">Se otorga al usuario una licencia personal, no exclusiva, no transferible y revocable para acceder al contenido únicamente con fines de aprendizaje personal. Queda <strong>expresamente prohibido</strong>:</p>
+      <ul class="legal-list">
+        <li>Reproducir, distribuir o revender el contenido de los cursos</li>
+        <li>Grabar o descargar los videos sin autorización expresa</li>
+        <li>Crear obras derivadas basadas en los materiales del curso</li>
+        <li>Usar el contenido con fines comerciales sin licencia</li>
+      </ul>
+    </div>
+
+    <div class="legal-section" id="t6">
+      <h2 class="section-title"><span class="section-number">6</span>Conducta del Usuario</h2>
+      <p class="legal-text">Los usuarios se comprometen a usar la Plataforma de manera ética y legal. Está prohibido:</p>
+      <ul class="legal-list">
+        <li>Publicar contenido ofensivo, difamatorio o ilegal</li>
+        <li>Intentar acceder sin autorización a sistemas o datos de otros usuarios</li>
+        <li>Usar la plataforma para actividades fraudulentas</li>
+        <li>Interferir con el funcionamiento normal de la Plataforma</li>
+        <li>Crear cuentas falsas o suplantar identidades</li>
+      </ul>
+    </div>
+
+    <div class="legal-section" id="t7">
+      <h2 class="section-title"><span class="section-number">7</span>Certificados y Validez</h2>
+      <p class="legal-text">Los certificados emitidos por ElhyAI acreditan la <strong>completación satisfactoria</strong> de un curso en nuestra plataforma. Cada certificado incluye:</p>
+      <ul class="legal-list">
+        <li>Código único verificable mediante QR en <a href="validar.html" style="color:var(--gold)">cursos.elhyai.com/validar</a></li>
+        <li>Nombre del estudiante y curso completado</li>
+        <li>Fecha de emisión y calificación obtenida</li>
+        <li>Firma digital del instructor</li>
+      </ul>
+      <p class="legal-text">Los certificados tienen validez permanente y pueden ser verificados en línea en cualquier momento. ElhyAI no garantiza el reconocimiento de estos certificados por parte de instituciones educativas formales o empleadores específicos.</p>
+    </div>
+
+    <div class="legal-section" id="t8">
+      <h2 class="section-title"><span class="section-number">8</span>Limitación de Responsabilidad</h2>
+      <p class="legal-text">ElhyAI no será responsable por daños indirectos, incidentales o consecuentes derivados del uso o imposibilidad de uso del servicio. La responsabilidad total no excederá el monto pagado por el usuario en los últimos 12 meses.</p>
+      <div class="highlight-box warn">
+        <i class="fas fa-balance-scale"></i>
+        Estos términos se rigen por las leyes de la República del Ecuador. Cualquier disputa se resolverá en los juzgados competentes de Milagro, Guayas, Ecuador.
+      </div>
+    </div>
+
+    <div class="contact-card">
+      <i class="fas fa-envelope"></i>
+      <div>
+        <p><strong style="color:var(--white)">¿Tienes preguntas sobre estos términos?</strong></p>
+        <p>Contáctanos en <a href="mailto:legal@elhyai.com">legal@elhyai.com</a> o por WhatsApp al <a href="https://wa.me/593999999999">+593 99 999 9999</a>. Respondemos en menos de 24 horas hábiles.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── PRIVACIDAD ─── -->
+  <div class="legal-panel" id="panel-privacidad">
+    <div class="doc-header">
+      <div class="doc-header-icon"><i class="fas fa-user-shield"></i></div>
+      <div class="doc-header-text">
+        <h1>Política de Privacidad</h1>
+        <p>Explica qué datos recopilamos, cómo los usamos y cómo los protegemos. Tu privacidad es nuestra prioridad.</p>
+        <div class="doc-meta">
+          <span class="doc-meta-item"><i class="fas fa-calendar"></i> Vigente desde: 1 de Enero, 2026</span>
+          <span class="doc-meta-item"><i class="fas fa-lock"></i> Datos cifrados SSL/TLS</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="legal-section">
+      <h2 class="section-title"><span class="section-number">1</span>Datos que Recopilamos</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th>Tipo de dato</th><th>Qué incluye</th><th>Propósito</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Datos de registro</strong></td><td>Nombre, correo, contraseña cifrada</td><td>Crear y gestionar tu cuenta</td></tr>
+          <tr><td><strong>Datos de perfil</strong></td><td>Foto, teléfono (opcional), país</td><td>Personalizar la experiencia</td></tr>
+          <tr><td><strong>Datos de uso</strong></td><td>Cursos vistos, progreso, calificaciones</td><td>Generar certificados y estadísticas</td></tr>
+          <tr><td><strong>Datos de pago</strong></td><td>Últimos 4 dígitos, método (procesado por PayPhone/Stripe)</td><td>Gestionar transacciones</td></tr>
+          <tr><td><strong>Datos técnicos</strong></td><td>IP, navegador, dispositivo, tiempo de sesión</td><td>Seguridad y mejora del servicio</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="legal-section">
+      <h2 class="section-title"><span class="section-number">2</span>Tus Derechos (ARCO)</h2>
+      <p class="legal-text">De acuerdo con la Ley Orgánica de Protección de Datos Personales del Ecuador (LOPDP), tienes derecho a:</p>
+      <ul class="legal-list">
+        <li><strong>Acceso:</strong> Solicitar una copia de todos tus datos personales que procesamos</li>
+        <li><strong>Rectificación:</strong> Corregir datos incorrectos o incompletos</li>
+        <li><strong>Cancelación:</strong> Solicitar la eliminación de tus datos (con las limitaciones legales aplicables)</li>
+        <li><strong>Oposición:</strong> Objetar el procesamiento de tus datos para fines de marketing</li>
+      </ul>
+      <p class="legal-text">Para ejercer estos derechos, envía una solicitud a <a href="mailto:privacidad@elhyai.com" style="color:var(--gold)">privacidad@elhyai.com</a> desde el correo registrado en tu cuenta.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2 class="section-title"><span class="section-number">3</span>Seguridad de los Datos</h2>
+      <ul class="legal-list">
+        <li>Cifrado SSL/TLS en todas las transmisiones de datos</li>
+        <li>Contraseñas almacenadas con hash bcrypt (nunca en texto plano)</li>
+        <li>Firebase Authentication y Firestore con reglas de seguridad estrictas</li>
+        <li>Acceso a datos limitado a personal autorizado con autenticación 2FA</li>
+        <li>Revisiones de seguridad periódicas</li>
+      </ul>
+    </div>
+
+    <div class="contact-card">
+      <i class="fas fa-shield-alt"></i>
+      <div>
+        <p><strong style="color:var(--white)">Responsable del tratamiento de datos:</strong></p>
+        <p>ElhyAI · <a href="mailto:privacidad@elhyai.com">privacidad@elhyai.com</a> · Milagro, Guayas, Ecuador</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── COOKIES ─── -->
+  <div class="legal-panel" id="panel-cookies">
+    <div class="doc-header">
+      <div class="doc-header-icon"><i class="fas fa-cookie-bite"></i></div>
+      <div class="doc-header-text">
+        <h1>Política de Cookies</h1>
+        <p>Información sobre las cookies y tecnologías de seguimiento que utilizamos en la plataforma.</p>
+        <div class="doc-meta">
+          <span class="doc-meta-item"><i class="fas fa-calendar"></i> Vigente desde: 1 de Enero, 2026</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="legal-section">
+      <h2 class="section-title"><span class="section-number">1</span>¿Qué son las cookies?</h2>
+      <p class="legal-text">Las cookies son pequeños archivos de texto que se almacenan en tu navegador cuando visitas un sitio web. Usamos cookies y tecnologías similares (localStorage, sessionStorage) para mejorar tu experiencia.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2 class="section-title"><span class="section-number">2</span>Tipos de cookies que usamos</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th>Cookie</th><th>Tipo</th><th>Duración</th><th>Propósito</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>liai_user</td><td>Esencial</td><td>Sesión</td><td>Mantener sesión iniciada</td></tr>
+          <tr><td>liai_progress_*</td><td>Funcional</td><td>Persistente</td><td>Guardar progreso de cursos</td></tr>
+          <tr><td>liai_darkmode</td><td>Preferencia</td><td>1 año</td><td>Recordar modo oscuro/claro</td></tr>
+          <tr><td>_ga, _gid</td><td>Analítica</td><td>2 años / 24h</td><td>Google Analytics (anónimo)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="legal-section">
+      <h2 class="section-title"><span class="section-number">3</span>Control de cookies</h2>
+      <p class="legal-text">Puedes controlar o eliminar las cookies desde la configuración de tu navegador. Ten en cuenta que desactivar las cookies esenciales puede afectar el funcionamiento de la plataforma.</p>
+      <div class="highlight-box">
+        <i class="fas fa-cog"></i>
+        Para borrar cookies: ve a Configuración de tu navegador → Privacidad → Borrar datos de navegación → Cookies y otros datos.
+      </div>
+      <button style="margin-top:1rem;padding:.6rem 1.25rem;border-radius:8px;border:1px solid rgba(201,168,76,0.2);background:transparent;color:var(--gold);font-family:'DM Sans',sans-serif;font-size:.85rem;cursor:pointer;" onclick="clearCookies()">
+        <i class="fas fa-trash" style="margin-right:.4rem"></i> Eliminar mis cookies de la plataforma
+      </button>
+    </div>
+  </div>
+
+  <!-- Accept bar -->
+  <div class="accept-bar">
+    <button class="accept-btn" id="accept-btn" onclick="acceptTerms()">
+      <i class="fas fa-check-circle"></i> He leído y acepto los términos
+    </button>
+  </div>
+
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-bottom">
+    <p>&copy; 2026 ElhyAI · <a href="index.html" style="color:var(--gold)">Inicio</a> · <a href="cursos.html" style="color:var(--gold)">Cursos</a></p>
+  </div>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase.js"></script>
+<script src="app.js"></script>
+<script>
+function switchTab(id, el) {
+  document.querySelectorAll('.legal-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.legal-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function acceptTerms() {
+  localStorage.setItem('liai_terms_accepted', Date.now());
+  const btn = document.getElementById('accept-btn');
+  btn.classList.add('accepted');
+  btn.innerHTML = '<i class="fas fa-check"></i> Términos aceptados';
+  setTimeout(() => {
+    const ref = document.referrer;
+    if (ref && ref.includes(location.hostname)) history.back();
+    else location.href = 'registro.html';
+  }, 1200);
+}
+
+function clearCookies() {
+  ['liai_user','liai_verifications','liai_darkmode'].forEach(k => localStorage.removeItem(k));
+  Object.keys(localStorage).filter(k => k.startsWith('liai_')).forEach(k => localStorage.removeItem(k));
+  alert('✅ Todas las cookies y datos locales de LI AI han sido eliminados.');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  window.LIAI?.initNavbar?.();
+  if (localStorage.getItem('liai_terms_accepted')) {
+    const btn = document.getElementById('accept-btn');
+    btn.classList.add('accepted');
+    btn.innerHTML = '<i class="fas fa-check"></i> Términos ya aceptados';
+  }
+  // Check URL hash for tab
+  const hash = location.hash.replace('#','');
+  if (hash === 'privacidad' || hash === 'cookies') {
+    const tab = document.querySelector(`[onclick*="${hash}"]`);
+    if (tab) switchTab(hash, tab);
+  }
+});
+</script>
+</body>
+</html>

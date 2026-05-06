@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Panel — ElhyAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- jsPDF + html2canvas + QRCode -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body { overflow-x: hidden; }
+
+    .dash-tab-content { display: none; }
+    .dash-tab-content.active { display: block; }
+
+    /* Video player area */
+    .video-section {
+      background: var(--navy-mid);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .video-top {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 0;
+      height: 480px;
+    }
+    .video-main {
+      position: relative;
+      background: #000;
+    }
+    .video-main iframe, .video-main video {
+      width: 100%; height: 100%; border: none;
+    }
+    .video-sidebar {
+      background: rgba(10,22,40,.8);
+      border-left: 1px solid var(--glass-border);
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .video-sidebar::-webkit-scrollbar { display: none; }
+    .module-header {
+      padding: 1rem 1.25rem;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--grey);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .module-item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .85rem 1.25rem;
+      cursor: pointer;
+      transition: background var(--transition);
+      border-bottom: 1px solid rgba(14,32,64,.5);
+    }
+    .module-item:hover { background: rgba(32,96,192,.08); }
+    .module-item.active { background: rgba(32,96,192,.12); }
+    .module-item.completed .mod-status { color: #34d399; }
+    .mod-num {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--navy-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--grey);
+      flex-shrink: 0;
+    }
+    .module-item.active .mod-num { background: var(--blue-glow); color: var(--white); }
+    .module-item.completed .mod-num { background: rgba(52,211,153,.15); color: #34d399; }
+    .mod-info { flex: 1; min-width: 0; }
+    .mod-info h5 { font-size: .82rem; font-weight: 600; margin-bottom: .1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mod-info span { font-size: .72rem; color: var(--grey); }
+    .mod-status { font-size: .85rem; flex-shrink: 0; color: var(--grey); }
+
+    .video-info { padding: 1.25rem 1.5rem; }
+    .video-info h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: .35rem; }
+    .video-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+
+    /* Eval */
+    .eval-option {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .85rem 1rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--glass-border);
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: .5rem;
+    }
+    .eval-option:hover { border-color: var(--blue-glow); background: rgba(32,96,192,.07); }
+    .eval-option.correct { border-color: #34d399; background: rgba(52,211,153,.08); }
+    .eval-option.wrong { border-color: #f87171; background: rgba(248,113,113,.08); }
+    .eval-option input { accent-color: var(--gold); }
+    .eval-option label { font-size: .9rem; cursor: pointer; }
+
+    @media(max-width:768px) {
+      .video-top { grid-template-columns: 1fr; height: auto; }
+      .video-sidebar { height: 250px; border-left: none; border-top: 1px solid var(--glass-border); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar scrolled">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo">LI <span>AI</span> Consultores</a>
+    <div class="nav-actions">
+      <button id="theme-toggle" class="btn btn-outline btn-sm"><i class="fa-solid fa-moon"></i></button>
+      <button onclick="LIAI.logoutUser()" class="btn btn-outline btn-sm">
+        <i class="fa-solid fa-right-from-bracket"></i> Salir
+      </button>
+    </div>
+    <button class="nav-toggle" onclick="document.querySelector('.dash-sidebar').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Dashboard Layout -->
+<div class="dash-layout">
+
+  <!-- Sidebar -->
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="avatar-wrap" id="sidebar-avatar">👤</div>
+      <div class="user-name" id="sidebar-name">Cargando...</div>
+      <div class="user-role">Estudiante</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Principal</div>
+      <a href="#" class="sidebar-link active" onclick="showTab('overview',this)">
+        <i class="fa-solid fa-house"></i> Dashboard
+      </a>
+      <a href="#" class="sidebar-link" onclick="showTab('courses',this)">
+        <i class="fa-solid fa-book-open"></i> Mis Cursos
+      </a>
+      <a href="#" class="sidebar-link" onclick="showTab('certs',this)">
+        <i class="fa-solid fa-award"></i> Certificados
+      </a>
+
+      <div class="sidebar-label" style="margin-top:1rem">Aprendizaje</div>
+      <a href="#" class="sidebar-link" onclick="showTab('player',this)">
+        <i class="fa-solid fa-play-circle"></i> Reproductor
+      </a>
+      <a href="#" class="sidebar-link" onclick="showTab('eval',this)">
+        <i class="fa-solid fa-clipboard-question"></i> Evaluaciones
+      </a>
+
+      <div class="sidebar-label" style="margin-top:1rem">Cuenta</div>
+      <a href="#" class="sidebar-link" onclick="showTab('profile',this)">
+        <i class="fa-solid fa-user-pen"></i> Mi Perfil
+      </a>
+      <a href="index.html#courses" class="sidebar-link">
+        <i class="fa-solid fa-cart-shopping"></i> Más Cursos
+      </a>
+      <a href="#" class="sidebar-link" style="color:#f87171" onclick="LIAI.logoutUser()">
+        <i class="fa-solid fa-right-from-bracket" style="color:#f87171"></i> Cerrar Sesión
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="dash-main">
+
+    <!-- ── OVERVIEW ── -->
+    <div id="tab-overview" class="dash-tab-content active">
+      <div class="admin-header">
+        <div>
+          <h2 id="greeting">¡Buenos días! 👋</h2>
+          <p style="font-size:.88rem;color:var(--grey)">Continúa donde lo dejaste</p>
+        </div>
+        <a href="index.html#courses" class="btn btn-gold btn-sm">
+          <i class="fa-solid fa-plus"></i> Nuevo Curso
+        </a>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card glass">
+          <div class="stat-card-label"><i class="fa-solid fa-book-open" style="color:var(--gold)"></i> Cursos</div>
+          <div class="stat-card-value" id="stat-courses">0</div>
+          <div class="stat-card-sub">adquiridos</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-card-label"><i class="fa-solid fa-chart-line" style="color:#34d399"></i> Progreso</div>
+          <div class="stat-card-value" id="stat-progress">0%</div>
+          <div class="stat-card-sub">promedio</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-card-label"><i class="fa-solid fa-award" style="color:var(--gold)"></i> Certificados</div>
+          <div class="stat-card-value" id="stat-certs">0</div>
+          <div class="stat-card-sub">obtenidos</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-card-label"><i class="fa-solid fa-fire" style="color:#f97316"></i> Racha</div>
+          <div class="stat-card-value">3</div>
+          <div class="stat-card-sub">días seguidos</div>
+        </div>
+      </div>
+
+      <!-- Continue course -->
+      <div class="glass" style="padding:1.5rem;border-radius:var(--radius);margin-bottom:1.5rem">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem">
+          <i class="fa-solid fa-play-circle" style="color:var(--gold)"></i> Continuar Aprendiendo
+        </h3>
+        <div id="continue-list">
+          <div style="text-align:center;padding:2rem;color:var(--grey)">
+            <i class="fa-solid fa-graduation-cap" style="font-size:2rem;margin-bottom:.75rem;display:block"></i>
+            Aún no tienes cursos. <a href="index.html#courses" style="color:var(--gold-light)">Explora el catálogo</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent activity -->
+      <div class="glass" style="padding:1.5rem;border-radius:var(--radius)">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem">
+          <i class="fa-solid fa-clock-rotate-left" style="color:var(--gold)"></i> Actividad Reciente
+        </h3>
+        <div style="display:flex;flex-direction:column;gap:.85rem">
+          <div style="display:flex;align-items:center;gap:.85rem">
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(52,211,153,.1);display:flex;align-items:center;justify-content:center;color:#34d399;font-size:.9rem"><i class="fa-solid fa-check"></i></div>
+            <div>
+              <div style="font-size:.88rem;font-weight:600">Módulo 1 completado</div>
+              <div style="font-size:.75rem;color:var(--grey)">hace 2 horas · IA desde Cero</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.85rem">
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.1);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:.9rem"><i class="fa-solid fa-star"></i></div>
+            <div>
+              <div style="font-size:.88rem;font-weight:600">Cuenta creada</div>
+              <div style="font-size:.75rem;color:var(--grey)">hoy · Bienvenido a LI AI</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MY COURSES ── -->
+    <div id="tab-courses" class="dash-tab-content">
+      <div class="admin-header">
+        <h2>Mis Cursos</h2>
+        <a href="index.html#courses" class="btn btn-gold btn-sm"><i class="fa-solid fa-plus"></i> Adquirir más</a>
+      </div>
+      <div id="my-courses-list"></div>
+    </div>
+
+    <!-- ── VIDEO PLAYER ── -->
+    <div id="tab-player" class="dash-tab-content">
+      <div class="admin-header">
+        <h2>Reproductor</h2>
+      </div>
+
+      <div class="video-section glass" id="video-section">
+        <div class="video-top">
+          <!-- Player -->
+          <div class="video-main">
+            <iframe id="video-iframe"
+              src="https://www.youtube.com/embed/videoseries?list=PLhtpKi6T0lHqOSMQVEEFDnS8gZzPEh_ac&autoplay=0&rel=0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              title="Lección actual">
+            </iframe>
+            <!-- Anti-download overlay -->
+            <div class="player-overlay"></div>
+          </div>
+
+          <!-- Module list -->
+          <div class="video-sidebar">
+            <div class="module-header">📚 Módulos del Curso</div>
+            <div id="module-list"></div>
+          </div>
+        </div>
+
+        <div class="video-info">
+          <h3 id="current-lesson-title">Selecciona un curso para comenzar</h3>
+          <div style="display:flex;gap:1rem;font-size:.8rem;color:var(--grey);margin-bottom:1rem">
+            <span id="lesson-module">Módulo 1</span>
+            <span>·</span>
+            <span id="lesson-course">Curso</span>
+          </div>
+          <div class="video-actions">
+            <button onclick="markCurrentComplete()" class="btn btn-primary btn-sm">
+              <i class="fa-solid fa-check"></i> Marcar completado
+            </button>
+            <button onclick="showTab('eval',document.querySelector('.sidebar-link[onclick*=eval]'))" class="btn btn-outline btn-sm">
+              <i class="fa-solid fa-clipboard-question"></i> Evaluación
+            </button>
+            <button onclick="showTab('certs',document.querySelector('.sidebar-link[onclick*=certs]'))" class="btn btn-outline btn-sm">
+              <i class="fa-solid fa-award"></i> Mi Certificado
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EVALUATIONS ── -->
+    <div id="tab-eval" class="dash-tab-content">
+      <div class="admin-header">
+        <h2>Evaluación</h2>
+      </div>
+
+      <div class="glass" style="padding:2rem;border-radius:var(--radius);max-width:680px">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem">
+          <div style="width:52px;height:52px;background:linear-gradient(135deg,var(--blue-glow),#0a2550);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem">🤖</div>
+          <div>
+            <h3 style="font-size:1.1rem;font-weight:700">Módulo 1: Fundamentos de IA</h3>
+            <p style="font-size:.82rem;color:var(--grey)">5 preguntas · Aprobación: 60%</p>
+          </div>
+        </div>
+
+        <div id="quiz-container"></div>
+        <div id="quiz-result" style="display:none;text-align:center;padding:2rem">
+          <div style="font-size:3rem;margin-bottom:.75rem" id="quiz-emoji">🎉</div>
+          <h3 id="quiz-score-title" style="font-size:1.3rem;font-weight:800;margin-bottom:.5rem"></h3>
+          <p id="quiz-score-desc" style="font-size:.9rem;color:var(--grey);margin-bottom:1.5rem"></p>
+          <button onclick="retryQuiz()" class="btn btn-outline btn-sm">
+            <i class="fa-solid fa-rotate-right"></i> Intentar de nuevo
+          </button>
+        </div>
+
+        <div style="margin-top:1.5rem;display:flex;justify-content:flex-end" id="submit-btn-wrap">
+          <button onclick="submitQuiz()" class="btn btn-gold">
+            <i class="fa-solid fa-paper-plane"></i> Enviar respuestas
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CERTIFICATES ── -->
+    <div id="tab-certs" class="dash-tab-content">
+      <div class="admin-header">
+        <h2>Mis Certificados</h2>
+      </div>
+
+      <div id="certs-list"></div>
+
+      <div class="glass" style="padding:1.5rem;border-radius:var(--radius);margin-top:1.5rem">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">
+          <i class="fa-solid fa-certificate" style="color:var(--gold)"></i> Generar Certificado de Prueba
+        </h3>
+        <p style="font-size:.85rem;color:var(--grey);margin-bottom:1.25rem">
+          Genera un certificado de demostración con tu nombre y el curso seleccionado.
+        </p>
+        <div style="display:flex;gap:.85rem;flex-wrap:wrap;align-items:flex-end">
+          <div style="flex:1;min-width:180px">
+            <label class="form-label">Nombre en el certificado</label>
+            <input type="text" id="cert-name-input" class="form-input" placeholder="Tu nombre completo" />
+          </div>
+          <div style="flex:1;min-width:180px">
+            <label class="form-label">Curso</label>
+            <select id="cert-course-select" class="form-input" style="cursor:pointer">
+              <option value="ia-desde-cero">Inteligencia Artificial desde Cero</option>
+              <option value="marketing-ia">Marketing Digital con IA</option>
+              <option value="chatgpt-automatizacion">Automatización con ChatGPT</option>
+              <option value="excel-datos">Excel y Análisis de Datos</option>
+              <option value="cobranza-ia">Cobranza Inteligente con IA</option>
+            </select>
+          </div>
+          <button onclick="downloadCert()" class="btn btn-gold">
+            <i class="fa-solid fa-download"></i> Descargar PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROFILE ── -->
+    <div id="tab-profile" class="dash-tab-content">
+      <div class="admin-header"><h2>Mi Perfil</h2></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <div class="glass" style="padding:2rem;border-radius:var(--radius)">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.5rem">Información Personal</h3>
+          <div class="form-group">
+            <label class="form-label">Nombre completo</label>
+            <input type="text" id="profile-name" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Correo electrónico</label>
+            <input type="email" id="profile-email" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono</label>
+            <input type="tel" id="profile-phone" class="form-input" placeholder="+593 99..." />
+          </div>
+          <button onclick="saveProfile()" class="btn btn-gold btn-sm">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
+          </button>
+        </div>
+
+        <div class="glass" style="padding:2rem;border-radius:var(--radius)">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.5rem">Seguridad</h3>
+          <div class="form-group">
+            <label class="form-label">Contraseña actual</label>
+            <input type="password" class="form-input" placeholder="••••••••" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nueva contraseña</label>
+            <input type="password" class="form-input" placeholder="••••••••" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirmar nueva contraseña</label>
+            <input type="password" class="form-input" placeholder="••••••••" />
+          </div>
+          <button onclick="LIAI.showToast('Contraseña actualizada','success')" class="btn btn-outline btn-sm">
+            <i class="fa-solid fa-lock"></i> Cambiar contraseña
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Certificate template (hidden, used for PDF gen) -->
+<div id="cert-template" style="position:fixed;left:-9999px;top:0;z-index:-1">
+  <div class="cert-border-outer"></div>
+  <div class="cert-border-inner"></div>
+  <div class="cert-corner tl"></div>
+  <div class="cert-corner tr"></div>
+  <div class="cert-corner bl"></div>
+  <div class="cert-corner br"></div>
+  <div class="cert-logo-line">
+    <div class="cert-logo-name">ElhyAI</div>
+    <div class="cert-divider"></div>
+    <div style="font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--grey)">Educación & Tecnología</div>
+  </div>
+  <div class="cert-title-main">Certificado</div>
+  <div class="cert-sub-title">de finalización</div>
+  <div class="cert-certifies">Se certifica que</div>
+  <div class="cert-student-name" id="cert-student">Nombre del Estudiante</div>
+  <div class="cert-course-label">ha completado satisfactoriamente el curso</div>
+  <div class="cert-course-name" id="cert-course">Nombre del Curso</div>
+  <div class="cert-footer">
+    <div class="cert-sign">
+      <div class="cert-sign-line"></div>
+      <strong>Director Académico</strong>
+      <p>ElhyAI</p>
+    </div>
+    <div id="cert-qr"></div>
+    <div class="cert-date-badge">
+      <p>Fecha de emisión</p>
+      <strong id="cert-date-val">01 de enero de 2025</strong>
+      <div style="font-size:.65rem;color:var(--grey);margin-top:.25rem">Código: <span id="cert-code">LIAI-XXXXXXXX</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="notif-toast"></div>
+
+<script src="app.js"></script>
+<script>
+  // ─── Auth guard ──────────────────────────────────────────
+  const user = LIAI.getCurrentUser();
+  if (!user) { window.location.href = 'login.html'; }
+
+  // ─── Init Dashboard ──────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    populateUser();
+    loadMyCourses();
+    initQuiz();
+    renderCertsList();
+    setGreeting();
+  });
+
+  function setGreeting() {
+    const h = new Date().getHours();
+    const greet = h < 12 ? '¡Buenos días' : h < 18 ? '¡Buenas tardes' : '¡Buenas noches';
+    const name = user.name.split(' ')[0];
+    document.getElementById('greeting').textContent = `${greet}, ${name}! 👋`;
+  }
+
+  function populateUser() {
+    document.getElementById('sidebar-name').textContent = user.name;
+    document.getElementById('sidebar-avatar').textContent = user.name.charAt(0).toUpperCase();
+    document.getElementById('profile-name').value = user.name;
+    document.getElementById('profile-email').value = user.email;
+    document.getElementById('profile-phone').value = user.phone || '';
+    document.getElementById('cert-name-input').value = user.name;
+  }
+
+  function loadMyCourses() {
+    const purchased = JSON.parse(localStorage.getItem(`liai_courses_${user.id}`) || '[]');
+    const allCourses = LIAI.COURSES_DATA;
+
+    // Demo: mostrar 2 cursos aunque no compró nada
+    const displayCourses = purchased.length > 0
+      ? allCourses.filter(c => purchased.includes(c.id))
+      : allCourses.slice(0, 2);
+
+    // Stats
+    document.getElementById('stat-courses').textContent = displayCourses.length;
+    const avgProg = displayCourses.reduce((sum, c) => sum + LIAI.getProgress(c.id), 0) / (displayCourses.length || 1);
+    document.getElementById('stat-progress').textContent = Math.round(avgProg) + '%';
+    const certs = displayCourses.filter(c => LIAI.getProgress(c.id) >= 100).length;
+    document.getElementById('stat-certs').textContent = certs;
+
+    // Continue list
+    const continueList = document.getElementById('continue-list');
+    continueList.innerHTML = displayCourses.map(c => {
+      const prog = LIAI.getProgress(c.id);
+      return `
+        <div class="my-course-item glass">
+          <div class="my-course-thumb">${c.icon}</div>
+          <div class="my-course-info">
+            <h4>${c.title}</h4>
+            <div class="meta">${c.modules} módulos · ${c.duration}</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${prog}%" data-course="${c.id}"></div></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:.85rem;font-weight:700;color:var(--gold);margin-bottom:.35rem">${prog}%</div>
+            <button onclick="openCourse('${c.id}')" class="btn btn-primary btn-sm">
+              ${prog > 0 ? 'Continuar' : 'Comenzar'}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // My courses tab
+    const myList = document.getElementById('my-courses-list');
+    myList.innerHTML = displayCourses.map(c => {
+      const prog = LIAI.getProgress(c.id);
+      return `
+        <div class="my-course-item glass" style="margin-bottom:.75rem">
+          <div class="my-course-thumb">${c.icon}</div>
+          <div class="my-course-info">
+            <h4>${c.title}</h4>
+            <div class="meta">${c.level} · ${c.modules} módulos · ${c.duration}</div>
+            <div class="progress-bar" style="margin-top:.35rem"><div class="progress-fill" style="width:${prog}%"></div></div>
+            <div style="font-size:.75rem;color:var(--grey);margin-top:.25rem">${prog}% completado</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;flex-shrink:0">
+            <button onclick="openCourse('${c.id}')" class="btn btn-primary btn-sm">
+              <i class="fa-solid fa-play"></i> ${prog > 0 ? 'Continuar' : 'Comenzar'}
+            </button>
+            ${prog >= 100 ? `<button onclick="downloadCertFor('${c.id}','${c.title}')" class="btn btn-gold btn-sm"><i class="fa-solid fa-award"></i> Certificado</button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Load modules for player
+    loadModules(displayCourses[0]);
+  }
+
+  function openCourse(courseId) {
+    const course = LIAI.COURSES_DATA.find(c => c.id === courseId);
+    loadModules(course);
+    showTab('player', null);
+    document.querySelector('.sidebar-link[onclick*=player]').classList.add('active');
+  }
+
+  let currentCourse = null;
+  let currentModuleIdx = 0;
+
+  function loadModules(course) {
+    if (!course) return;
+    currentCourse = course;
+    document.getElementById('lesson-course').textContent = course.title;
+
+    const moduleList = document.getElementById('module-list');
+    const moduleNames = [
+      'Introducción y Fundamentos',
+      'Conceptos Clave',
+      'Herramientas Principales',
+      'Práctica Guiada',
+      'Casos de Uso Reales',
+      'Proyecto Final',
+      'Evaluación Final',
+      'Recursos Adicionales'
+    ].slice(0, course.modules);
+
+    moduleList.innerHTML = moduleNames.map((name, i) => {
+      const prog = LIAI.getProgress(course.id);
+      const doneUpTo = Math.floor((prog / 100) * course.modules);
+      const isDone = i < doneUpTo;
+      const isActive = i === currentModuleIdx;
+      return `
+        <div class="module-item ${isDone ? 'completed' : ''} ${isActive ? 'active' : ''}" onclick="selectModule(${i},'${name}')">
+          <div class="mod-num">${isDone ? '<i class="fa-solid fa-check"></i>' : i + 1}</div>
+          <div class="mod-info">
+            <h5>${name}</h5>
+            <span>${isDone ? 'Completado' : (isActive ? 'En curso' : 'Por ver')}</span>
+          </div>
+          <span class="mod-status">${isDone ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-regular fa-circle"></i>'}</span>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('current-lesson-title').textContent = moduleNames[0];
+    document.getElementById('lesson-module').textContent = `Módulo 1 de ${course.modules}`;
+    document.getElementById('video-iframe').src = course.videoUrl + '?rel=0';
+  }
+
+  function selectModule(idx, name) {
+    currentModuleIdx = idx;
+    document.querySelectorAll('.module-item').forEach((el, i) => {
+      el.classList.toggle('active', i === idx);
+    });
+    document.getElementById('current-lesson-title').textContent = name;
+    document.getElementById('lesson-module').textContent = `Módulo ${idx + 1} de ${currentCourse?.modules || 1}`;
+  }
+
+  function markCurrentComplete() {
+    if (!currentCourse) { LIAI.showToast('Selecciona un curso primero', 'info'); return; }
+    LIAI.markModuleComplete(currentCourse.id, currentModuleIdx, currentCourse.modules);
+    loadModules(currentCourse);
+  }
+
+  // ─── Quiz ─────────────────────────────────────────────────
+  const QUIZ = [
+    { q: '¿Qué significa "IA" en el contexto tecnológico?', opts: ['Información Avanzada', 'Inteligencia Artificial', 'Interfaz Automatizada', 'Índice de Algoritmos'], correct: 1 },
+    { q: '¿Cuál es una aplicación común de la IA en la actualidad?', opts: ['Calculadoras básicas', 'Hojas de cálculo', 'Asistentes virtuales como ChatGPT', 'Impresoras'], correct: 2 },
+    { q: '¿Qué es el Machine Learning?', opts: ['Aprender a usar máquinas', 'Subcampo de la IA donde los sistemas aprenden de datos', 'Un lenguaje de programación', 'Fabricar computadoras'], correct: 1 },
+    { q: '¿Cuál herramienta utiliza IA para generar texto?', opts: ['Excel', 'Word', 'ChatGPT', 'PowerPoint'], correct: 2 },
+    { q: '¿Qué ventaja ofrece la IA en procesos de cobranza?', opts: ['Mayor gasto operativo', 'Automatización y personalización de mensajes', 'Elimina al equipo humano', 'Requiere más tiempo'], correct: 1 }
+  ];
+  let userAnswers = {};
+
+  function initQuiz() {
+    renderQuiz();
+  }
+
+  function renderQuiz() {
+    userAnswers = {};
+    document.getElementById('quiz-result').style.display = 'none';
+    document.getElementById('submit-btn-wrap').style.display = 'flex';
+    document.getElementById('quiz-container').innerHTML = QUIZ.map((q, qi) => `
+      <div style="margin-bottom:1.5rem">
+        <p style="font-size:.9rem;font-weight:600;margin-bottom:.85rem;color:var(--white)">
+          <span style="color:var(--gold)">${qi + 1}.</span> ${q.q}
+        </p>
+        ${q.opts.map((opt, oi) => `
+          <div class="eval-option" id="opt-${qi}-${oi}" onclick="selectAnswer(${qi},${oi})">
+            <input type="radio" name="q${qi}" value="${oi}" id="inp-${qi}-${oi}">
+            <label for="inp-${qi}-${oi}">${opt}</label>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+  }
+
+  function selectAnswer(qi, oi) {
+    userAnswers[qi] = oi;
+    document.querySelectorAll(`[id^="opt-${qi}-"]`).forEach(el => el.style.borderColor = '');
+    document.getElementById(`opt-${qi}-${oi}`).style.borderColor = 'var(--blue-glow)';
+    document.getElementById(`inp-${qi}-${oi}`).checked = true;
+  }
+
+  function submitQuiz() {
+    if (Object.keys(userAnswers).length < QUIZ.length) {
+      LIAI.showToast('Responde todas las preguntas antes de enviar', 'info');
+      return;
+    }
+    let correct = 0;
+    QUIZ.forEach((q, qi) => {
+      const userAns = userAnswers[qi];
+      const correctEl = document.getElementById(`opt-${qi}-${q.correct}`);
+      const userEl    = document.getElementById(`opt-${qi}-${userAns}`);
+      if (correctEl) correctEl.classList.add('correct');
+      if (userAns === q.correct) { correct++; }
+      else if (userEl) userEl.classList.add('wrong');
+    });
+    const pct = Math.round((correct / QUIZ.length) * 100);
+    const passed = pct >= 60;
+
+    document.getElementById('quiz-container').style.opacity = '.5';
+    document.getElementById('quiz-container').style.pointerEvents = 'none';
+    document.getElementById('submit-btn-wrap').style.display = 'none';
+    document.getElementById('quiz-result').style.display = 'block';
+    document.getElementById('quiz-emoji').textContent = passed ? '🎉' : '😕';
+    document.getElementById('quiz-score-title').textContent = passed ? `¡Aprobado! ${pct}% correcto` : `No aprobado — ${pct}%`;
+    document.getElementById('quiz-score-desc').textContent = passed
+      ? `Obtuviste ${correct} de ${QUIZ.length} respuestas correctas. ¡Excelente trabajo!`
+      : `Necesitas al menos 60% para aprobar. Revisa el contenido e inténtalo de nuevo.`;
+
+    if (passed) LIAI.showToast('¡Módulo aprobado! 🎓', 'success');
+    else LIAI.showToast('Revisa el material e intenta de nuevo', 'info');
+  }
+
+  function retryQuiz() {
+    document.getElementById('quiz-container').style.opacity = '';
+    document.getElementById('quiz-container').style.pointerEvents = '';
+    renderQuiz();
+  }
+
+  // ─── Certificates ─────────────────────────────────────────
+  function renderCertsList() {
+    const purchased = JSON.parse(localStorage.getItem(`liai_courses_${user.id}`) || '[]');
+    const allCourses = LIAI.COURSES_DATA.slice(0, 2);
+    const completed = allCourses.filter(c => LIAI.getProgress(c.id) >= 100);
+
+    const list = document.getElementById('certs-list');
+    if (completed.length === 0) {
+      list.innerHTML = `
+        <div class="glass" style="padding:2rem;text-align:center;border-radius:var(--radius);margin-bottom:1rem">
+          <i class="fa-solid fa-award" style="font-size:2.5rem;color:var(--gold-dim);display:block;margin-bottom:.75rem"></i>
+          <p style="color:var(--grey)">Completa un curso al 100% para obtener tu certificado.</p>
+        </div>
+      `;
+    } else {
+      list.innerHTML = completed.map(c => `
+        <div class="cert-card glass">
+          <div class="cert-icon"><i class="fa-solid fa-award"></i></div>
+          <div class="cert-info">
+            <h4>${c.title}</h4>
+            <p>${c.duration} · ${c.modules} módulos</p>
+            <p class="cert-date">Completado el ${new Date().toLocaleDateString('es-EC')}</p>
+          </div>
+          <button onclick="downloadCertFor('${c.id}','${c.title}')" class="btn btn-gold btn-sm">
+            <i class="fa-solid fa-download"></i> Descargar PDF
+          </button>
+        </div>
+      `).join('');
+    }
+  }
+
+  async function downloadCert() {
+    const name = document.getElementById('cert-name-input').value.trim();
+    const sel  = document.getElementById('cert-course-select');
+    const courseTitle = sel.options[sel.selectedIndex].text;
+    const courseId = sel.value;
+    if (!name) { LIAI.showToast('Ingresa tu nombre para el certificado', 'info'); return; }
+    await LIAI.generateCertificate(name, courseTitle, courseId);
+  }
+
+  async function downloadCertFor(courseId, courseTitle) {
+    await LIAI.generateCertificate(user.name, courseTitle, courseId);
+  }
+
+  // ─── Tab navigation ───────────────────────────────────────
+  function showTab(tabId, clickedLink) {
+    document.querySelectorAll('.dash-tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById(`tab-${tabId}`)?.classList.add('active');
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    if (clickedLink) clickedLink.classList.add('active');
+  }
+
+  function saveProfile() {
+    const updated = { ...user, name: document.getElementById('profile-name').value, email: document.getElementById('profile-email').value, phone: document.getElementById('profile-phone').value };
+    LIAI.setCurrentUser(updated);
+    LIAI.showToast('Perfil actualizado correctamente', 'success');
+    document.getElementById('sidebar-name').textContent = updated.name;
+  }
+</script>
+</body>
+</html>

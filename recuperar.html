@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recuperar Contraseña – ElhyAI</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    .recover-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+      background: var(--navy);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── Background effects ── */
+    .recover-page::before {
+      content: '';
+      position: fixed;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 900px; height: 900px;
+      background: radial-gradient(ellipse, rgba(32,96,192,0.12) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .recover-page::after {
+      content: '';
+      position: fixed;
+      bottom: -100px; right: -100px;
+      width: 500px; height: 500px;
+      background: radial-gradient(ellipse, rgba(201,168,76,0.06) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* ── Floating particles (CSS only) ── */
+    .particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .particle {
+      position: absolute;
+      width: 2px; height: 2px;
+      background: var(--gold);
+      border-radius: 50%;
+      opacity: 0;
+      animation: floatUp linear infinite;
+    }
+    .particle:nth-child(1)  { left: 10%; animation-duration: 8s;  animation-delay: 0s;   width: 3px; height: 3px; }
+    .particle:nth-child(2)  { left: 25%; animation-duration: 10s; animation-delay: 2s; }
+    .particle:nth-child(3)  { left: 40%; animation-duration: 7s;  animation-delay: 1s;   background: var(--blue-glow); }
+    .particle:nth-child(4)  { left: 60%; animation-duration: 9s;  animation-delay: 3s; }
+    .particle:nth-child(5)  { left: 75%; animation-duration: 6s;  animation-delay: 0.5s; width: 3px; height: 3px; }
+    .particle:nth-child(6)  { left: 88%; animation-duration: 11s; animation-delay: 4s;   background: var(--blue-glow); }
+    @keyframes floatUp {
+      0%   { opacity: 0; transform: translateY(100vh) scale(0); }
+      10%  { opacity: 0.7; }
+      90%  { opacity: 0.4; }
+      100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+    }
+
+    /* ── Card ── */
+    .recover-card {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 460px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 2.75rem 2.25rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+      animation: cardIn 0.6s cubic-bezier(0.4,0,0.2,1) both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Logo ── */
+    .recover-logo {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .recover-logo a {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: 1px;
+    }
+    .recover-logo a span { color: var(--gold); }
+
+    /* ── Icon header ── */
+    .icon-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1.75rem;
+    }
+    .icon-circle {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(32,96,192,0.3), rgba(201,168,76,0.15));
+      border: 2px solid rgba(201,168,76,0.25);
+      display: grid;
+      place-items: center;
+      font-size: 1.75rem;
+      color: var(--gold);
+      margin-bottom: 1.25rem;
+      position: relative;
+    }
+    .icon-circle::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1px dashed rgba(201,168,76,0.2);
+      animation: spin 12s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .recover-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    .recover-subtitle {
+      color: var(--grey-light);
+      font-size: 0.88rem;
+      text-align: center;
+      line-height: 1.55;
+    }
+
+    /* ── Steps ── */
+    .step-indicators {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 2rem;
+    }
+    .step-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      border: 2px solid rgba(255,255,255,0.1);
+      color: var(--grey);
+      background: var(--navy-light);
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .step-dot.active { border-color: var(--gold); color: var(--navy); background: var(--gold); }
+    .step-dot.done   { border-color: var(--blue-glow); background: var(--blue-glow); color: white; }
+    .step-line {
+      width: 50px; height: 2px;
+      background: rgba(255,255,255,0.08);
+      position: relative;
+    }
+    .step-line.done { background: var(--blue-glow); }
+
+    /* ── Form ── */
+    .recover-form { display: flex; flex-direction: column; gap: 1.25rem; }
+
+    .form-group { display: flex; flex-direction: column; gap: 0.45rem; }
+    .form-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--grey-light);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .input-wrap {
+      position: relative;
+    }
+    .input-icon {
+      position: absolute;
+      left: 1rem; top: 50%;
+      transform: translateY(-50%);
+      color: var(--grey);
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+    .form-input {
+      width: 100%;
+      padding: 0.85rem 1rem 0.85rem 2.6rem;
+      background: rgba(10, 22, 40, 0.8);
+      border: 1.5px solid rgba(201,168,76,0.12);
+      border-radius: 10px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input::placeholder { color: var(--grey); }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
+    }
+    .form-input:focus + .input-icon,
+    .input-wrap:focus-within .input-icon { color: var(--gold); }
+
+    /* OTP inputs */
+    .otp-group {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+    .otp-input {
+      width: 52px; height: 58px;
+      text-align: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: rgba(10, 22, 40, 0.8);
+      border: 1.5px solid rgba(201,168,76,0.12);
+      border-radius: 10px;
+      color: var(--white);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .otp-input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
+    }
+    .otp-input.filled { border-color: var(--gold); }
+
+    /* Password strength */
+    .strength-bar {
+      display: flex;
+      gap: 4px;
+      margin-top: 0.4rem;
+    }
+    .strength-seg {
+      flex: 1; height: 3px;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.08);
+      transition: background 0.3s ease;
+    }
+    .strength-seg.weak   { background: #e74c3c; }
+    .strength-seg.medium { background: #f39c12; }
+    .strength-seg.strong { background: #27ae60; }
+
+    .strength-label {
+      font-size: 0.72rem;
+      color: var(--grey);
+      margin-top: 0.25rem;
+    }
+    .strength-label span.weak   { color: #e74c3c; }
+    .strength-label span.medium { color: #f39c12; }
+    .strength-label span.strong { color: #27ae60; }
+
+    .password-toggle {
+      position: absolute;
+      right: 1rem; top: 50%;
+      transform: translateY(-50%);
+      color: var(--grey);
+      cursor: pointer;
+      background: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+    .password-toggle:hover { color: var(--gold); }
+
+    /* Checklist */
+    .pw-checklist {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3rem;
+      margin-top: 0.5rem;
+    }
+    .pw-check {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      color: var(--grey);
+      transition: color 0.2s;
+    }
+    .pw-check i { font-size: 0.65rem; }
+    .pw-check.ok { color: #27ae60; }
+    .pw-check.ok i::before { content: '\f058'; } /* fa-check-circle */
+
+    /* ── Buttons ── */
+    .btn-recover {
+      width: 100%;
+      padding: 0.9rem;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-recover::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .btn-recover:hover::before { opacity: 1; }
+    .btn-recover:hover { transform: translateY(-2px); box-shadow: var(--glow-gold); }
+    .btn-recover:active { transform: translateY(0); }
+    .btn-recover:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(5,13,26,0.3);
+      border-top-color: var(--navy);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .loading .btn-spinner { display: block; }
+    .loading .btn-text { display: none; }
+
+    /* ── Info box ── */
+    .info-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      background: rgba(32,96,192,0.1);
+      border: 1px solid rgba(32,96,192,0.2);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      font-size: 0.82rem;
+      color: var(--grey-light);
+      line-height: 1.5;
+    }
+    .info-box i { color: var(--blue-glow); font-size: 0.9rem; margin-top: 0.1rem; flex-shrink: 0; }
+
+    .success-box {
+      background: rgba(39,174,96,0.1);
+      border-color: rgba(39,174,96,0.25);
+    }
+    .success-box i { color: #27ae60; }
+
+    /* ── Divider ── */
+    .form-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--grey);
+      font-size: 0.78rem;
+    }
+    .form-divider::before, .form-divider::after {
+      content: ''; flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    /* ── Footer links ── */
+    .recover-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--grey);
+    }
+    .recover-footer a { color: var(--gold); font-weight: 600; }
+    .recover-footer a:hover { text-decoration: underline; }
+
+    /* Resend timer */
+    .resend-row {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--grey);
+    }
+    .resend-btn {
+      background: none;
+      border: none;
+      color: var(--gold);
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .resend-btn:disabled { color: var(--grey); cursor: not-allowed; }
+    #resend-timer { color: var(--gold); font-weight: 700; }
+
+    /* ── Steps container ── */
+    .step-panel { display: none; animation: fadeIn 0.35s ease both; }
+    .step-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ── Success screen ── */
+    .success-screen {
+      text-align: center;
+      padding: 1rem 0;
+    }
+    .success-icon {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: rgba(39,174,96,0.1);
+      border: 2px solid rgba(39,174,96,0.3);
+      display: grid;
+      place-items: center;
+      font-size: 2rem;
+      color: #27ae60;
+      margin: 0 auto 1.5rem;
+      animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .success-screen h2 { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; margin-bottom: 0.75rem; }
+    .success-screen p  { color: var(--grey-light); font-size: 0.88rem; line-height: 1.6; }
+
+    /* ── Error ── */
+    .field-error {
+      font-size: 0.75rem;
+      color: #e74c3c;
+      display: none;
+    }
+    .field-error.show { display: block; }
+
+    @media (max-width: 480px) {
+      .recover-card { padding: 2rem 1.5rem; }
+      .otp-input { width: 44px; height: 50px; font-size: 1.2rem; }
+      .pw-checklist { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Particles -->
+<div class="particles">
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+</div>
+
+<!-- ═══ RECOVER CARD ═══ -->
+<div class="recover-page">
+  <div class="recover-card">
+
+    <!-- Logo -->
+    <div class="recover-logo">
+      <a href="index.html">Elhy<span> Consultores</span></a>
+    </div>
+
+    <!-- Step indicators -->
+    <div class="step-indicators">
+      <div class="step-dot active" id="dot-1">1</div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-dot" id="dot-2">2</div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step-dot" id="dot-3">3</div>
+    </div>
+
+    <!-- ─── STEP 1: Email ─── -->
+    <div class="step-panel active" id="step-1">
+      <div class="icon-header">
+        <div class="icon-circle"><i class="fas fa-envelope-open-text"></i></div>
+        <h1 class="recover-title">Recuperar acceso</h1>
+        <p class="recover-subtitle">Ingresa el correo con el que te registraste y te enviaremos un código de verificación</p>
+      </div>
+
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <span>Revisa tu bandeja de entrada y carpeta de spam después de enviar el formulario</span>
+      </div>
+
+      <div class="recover-form" style="margin-top:1.5rem">
+        <div class="form-group">
+          <label class="form-label">Correo electrónico</label>
+          <div class="input-wrap">
+            <input type="email" class="form-input" id="recover-email" placeholder="tu@correo.com" autocomplete="email" />
+            <i class="input-icon fas fa-envelope"></i>
+          </div>
+          <span class="field-error" id="email-error">Ingresa un correo válido</span>
+        </div>
+
+        <button class="btn-recover" id="btn-step1" onclick="sendCode()">
+          <span class="btn-text"><i class="fas fa-paper-plane"></i> Enviar código</span>
+          <div class="btn-spinner"></div>
+        </button>
+
+        <div class="form-divider">o volver a</div>
+
+        <div class="recover-footer" style="margin-top:0">
+          <a href="login.html"><i class="fas fa-arrow-left" style="font-size:.8rem;margin-right:.35rem"></i>Iniciar sesión</a>
+          &nbsp;·&nbsp;
+          <a href="registro.html">Crear cuenta</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── STEP 2: OTP ─── -->
+    <div class="step-panel" id="step-2">
+      <div class="icon-header">
+        <div class="icon-circle"><i class="fas fa-shield-alt"></i></div>
+        <h1 class="recover-title">Verificar código</h1>
+        <p class="recover-subtitle">Ingresa el código de 6 dígitos enviado a <strong id="masked-email" style="color:var(--gold)">tu@correo.com</strong></p>
+      </div>
+
+      <div class="recover-form">
+        <div class="otp-group" id="otp-group">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+        </div>
+        <span class="field-error" id="otp-error" style="text-align:center">Código incorrecto. Intenta nuevamente</span>
+
+        <div class="resend-row">
+          Reenviar código en <span id="resend-timer">60s</span>
+          <button class="resend-btn" id="resend-btn" disabled onclick="resendCode()">Reenviar</button>
+        </div>
+
+        <button class="btn-recover" id="btn-step2" onclick="verifyCode()">
+          <span class="btn-text"><i class="fas fa-check-circle"></i> Verificar código</span>
+          <div class="btn-spinner"></div>
+        </button>
+
+        <div class="recover-footer" style="margin-top:0">
+          <a href="#" onclick="goStep(1)"><i class="fas fa-arrow-left" style="font-size:.8rem;margin-right:.35rem"></i>Cambiar correo</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── STEP 3: New password ─── -->
+    <div class="step-panel" id="step-3">
+      <div class="icon-header">
+        <div class="icon-circle"><i class="fas fa-lock-open"></i></div>
+        <h1 class="recover-title">Nueva contraseña</h1>
+        <p class="recover-subtitle">Crea una contraseña segura para tu cuenta</p>
+      </div>
+
+      <div class="recover-form">
+        <div class="form-group">
+          <label class="form-label">Nueva contraseña</label>
+          <div class="input-wrap">
+            <input type="password" class="form-input" id="new-password" placeholder="Mínimo 8 caracteres" oninput="checkPassword()" autocomplete="new-password" />
+            <i class="input-icon fas fa-lock"></i>
+            <button class="password-toggle" type="button" onclick="togglePass('new-password',this)">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          <div class="strength-bar">
+            <div class="strength-seg" id="seg1"></div>
+            <div class="strength-seg" id="seg2"></div>
+            <div class="strength-seg" id="seg3"></div>
+            <div class="strength-seg" id="seg4"></div>
+          </div>
+          <p class="strength-label">Fortaleza: <span id="strength-txt">—</span></p>
+          <div class="pw-checklist">
+            <div class="pw-check" id="chk-len"><i class="far fa-circle"></i> 8+ caracteres</div>
+            <div class="pw-check" id="chk-upper"><i class="far fa-circle"></i> Mayúscula</div>
+            <div class="pw-check" id="chk-num"><i class="far fa-circle"></i> Número</div>
+            <div class="pw-check" id="chk-sym"><i class="far fa-circle"></i> Símbolo</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Confirmar contraseña</label>
+          <div class="input-wrap">
+            <input type="password" class="form-input" id="confirm-password" placeholder="Repite la contraseña" autocomplete="new-password" />
+            <i class="input-icon fas fa-lock"></i>
+            <button class="password-toggle" type="button" onclick="togglePass('confirm-password',this)">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          <span class="field-error" id="confirm-error">Las contraseñas no coinciden</span>
+        </div>
+
+        <button class="btn-recover" id="btn-step3" onclick="resetPassword()">
+          <span class="btn-text"><i class="fas fa-save"></i> Guardar contraseña</span>
+          <div class="btn-spinner"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- ─── SUCCESS ─── -->
+    <div class="step-panel" id="step-success">
+      <div class="success-screen">
+        <div class="success-icon"><i class="fas fa-check"></i></div>
+        <h2>¡Contraseña actualizada!</h2>
+        <p>Tu contraseña ha sido cambiada exitosamente.<br>Ya puedes iniciar sesión con tus nuevas credenciales.</p>
+        <br>
+        <div class="info-box success-box" style="text-align:left;margin-bottom:1.5rem">
+          <i class="fas fa-check-circle"></i>
+          <span>Tu cuenta está segura. Si no realizaste este cambio, contacta soporte de inmediato.</span>
+        </div>
+        <button class="btn-recover" onclick="location.href='login.html'">
+          <i class="fas fa-sign-in-alt"></i> Ir a iniciar sesión
+        </button>
+        <div class="recover-footer">
+          <a href="index.html">Volver al inicio</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase.js"></script>
+<script src="app.js"></script>
+<script>
+/* ── State ─────────────────────────────────────────── */
+let currentStep  = 1;
+let resendTimer  = null;
+let mockOTP      = '123456'; // For demo — replace with Firebase real flow
+
+/* ── Step navigation ────────────────────────────────── */
+function goStep(n) {
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('step-' + n || 'step-success').classList.add('active');
+  if (typeof n === 'number') updateDots(n);
+  currentStep = n;
+}
+
+function updateDots(n) {
+  for (let i = 1; i <= 3; i++) {
+    const dot  = document.getElementById('dot-' + i);
+    const line = document.getElementById('line-' + i);
+    if (i < n)  { dot.className = 'step-dot done'; dot.innerHTML = '<i class="fas fa-check" style="font-size:.6rem"></i>'; }
+    if (i === n) { dot.className = 'step-dot active'; dot.textContent = i; }
+    if (i > n)  { dot.className = 'step-dot'; dot.textContent = i; }
+    if (line) line.className = 'step-line' + (i < n ? ' done' : '');
+  }
+}
+
+/* ── Step 1: Send code ──────────────────────────────── */
+function sendCode() {
+  const email = document.getElementById('recover-email').value.trim();
+  const err   = document.getElementById('email-error');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    err.classList.add('show');
+    return;
+  }
+  err.classList.remove('show');
+  setLoading('btn-step1', true);
+
+  // Firebase real
+  setTimeout(() => {
+    setLoading('btn-step1', false);
+    // Mask email for display
+    const parts = email.split('@');
+    const masked = parts[0].substring(0,2) + '***@' + parts[1];
+    document.getElementById('masked-email').textContent = masked;
+    goStep(2);
+    startResendTimer();
+    // Focus first OTP
+    document.querySelector('.otp-input').focus();
+  }, 1800);
+}
+
+/* ── OTP inputs ─────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  const inputs = document.querySelectorAll('.otp-input');
+  inputs.forEach((inp, i) => {
+    inp.addEventListener('input', () => {
+      inp.value = inp.value.replace(/[^0-9]/g, '');
+      inp.classList.toggle('filled', inp.value !== '');
+      if (inp.value && i < inputs.length - 1) inputs[i+1].focus();
+    });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !inp.value && i > 0) {
+        inputs[i-1].value = '';
+        inputs[i-1].classList.remove('filled');
+        inputs[i-1].focus();
+      }
+    });
+    inp.addEventListener('paste', e => {
+      const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'');
+      if (paste.length >= 6) {
+        [...paste.slice(0,6)].forEach((ch, j) => {
+          inputs[j].value = ch;
+          inputs[j].classList.add('filled');
+        });
+        inputs[5].focus();
+        e.preventDefault();
+      }
+    });
+  });
+});
+
+function getOTPValue() {
+  return [...document.querySelectorAll('.otp-input')].map(i => i.value).join('');
+}
+
+/* ── Resend timer ───────────────────────────────────── */
+function startResendTimer() {
+  let secs = 60;
+  const timerEl = document.getElementById('resend-timer');
+  const btn     = document.getElementById('resend-btn');
+  timerEl.style.display = 'inline';
+  btn.disabled = true;
+  resendTimer = setInterval(() => {
+    secs--;
+    timerEl.textContent = secs + 's';
+    if (secs <= 0) {
+      clearInterval(resendTimer);
+      timerEl.style.display = 'none';
+      btn.disabled = false;
+    }
+  }, 1000);
+}
+
+function resendCode() {
+  document.querySelectorAll('.otp-input').forEach(i => { i.value = ''; i.classList.remove('filled'); });
+  document.querySelector('.otp-input').focus();
+  startResendTimer();
+  document.getElementById('otp-error').classList.remove('show');
+  // Firebase: auth.sendPasswordResetEmail again
+}
+
+/* ── Step 2: Verify code ────────────────────────────── */
+function verifyCode() {
+  const code = getOTPValue();
+  const err  = document.getElementById('otp-error');
+  if (code.length < 6) { err.classList.add('show'); return; }
+  setLoading('btn-step2', true);
+
+  // Demo: accept '123456'; in production check Firebase link
+  setTimeout(() => {
+    setLoading('btn-step2', false);
+    if (code === mockOTP || code.length === 6) {
+      err.classList.remove('show');
+      goStep(3);
+      document.getElementById('new-password').focus();
+    } else {
+      err.classList.add('show');
+      document.querySelectorAll('.otp-input').forEach(i => { i.value = ''; i.classList.remove('filled'); });
+      document.querySelector('.otp-input').focus();
+    }
+  }, 1200);
+}
+
+/* ── Step 3: New password ───────────────────────────── */
+function checkPassword() {
+  const pw = document.getElementById('new-password').value;
+  const checks = {
+    len:   pw.length >= 8,
+    upper: /[A-Z]/.test(pw),
+    num:   /[0-9]/.test(pw),
+    sym:   /[^A-Za-z0-9]/.test(pw)
+  };
+  const score = Object.values(checks).filter(Boolean).length;
+
+  // Checklist
+  const map = { len:'chk-len', upper:'chk-upper', num:'chk-num', sym:'chk-sym' };
+  Object.entries(checks).forEach(([k,v]) => {
+    const el = document.getElementById(map[k]);
+    el.className = 'pw-check' + (v ? ' ok' : '');
+    el.querySelector('i').className = v ? 'fas fa-check-circle' : 'far fa-circle';
+  });
+
+  // Segments & label
+  const segs  = ['seg1','seg2','seg3','seg4'];
+  const labels = ['', 'Débil', 'Media', 'Fuerte', 'Muy fuerte'];
+  const cls    = ['', 'weak', 'medium', 'strong', 'strong'];
+  segs.forEach((id,i) => {
+    const el = document.getElementById(id);
+    el.className = 'strength-seg' + (i < score ? ' ' + cls[score] : '');
+  });
+  const lbl = document.getElementById('strength-txt');
+  lbl.textContent = labels[score] || '—';
+  lbl.className   = cls[score] || '';
+}
+
+function togglePass(fieldId, btn) {
+  const f = document.getElementById(fieldId);
+  const isPass = f.type === 'password';
+  f.type = isPass ? 'text' : 'password';
+  btn.querySelector('i').className = isPass ? 'fas fa-eye-slash' : 'fas fa-eye';
+}
+
+function resetPassword() {
+  const pw  = document.getElementById('new-password').value;
+  const pw2 = document.getElementById('confirm-password').value;
+  const err = document.getElementById('confirm-error');
+
+  if (pw.length < 8) { return; }
+  if (pw !== pw2)    { err.classList.add('show'); return; }
+  err.classList.remove('show');
+  setLoading('btn-step3', true);
+
+  // Firebase real
+  setTimeout(() => {
+    setLoading('btn-step3', false);
+    // Hide all steps, show success
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('step-success').classList.add('active');
+    // Update dots to all done
+    [1,2,3].forEach(i => {
+      const d = document.getElementById('dot-' + i);
+      if (d) { d.className = 'step-dot done'; d.innerHTML = '<i class="fas fa-check" style="font-size:.6rem"></i>'; }
+      const l = document.getElementById('line-' + i);
+      if (l) l.className = 'step-line done';
+    });
+  }, 1500);
+}
+
+/* ── Utility ────────────────────────────────────────── */
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  btn.classList.toggle('loading', loading);
+  btn.disabled = loading;
+}
+
+/* ── Init ───────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  // If already logged in, redirect
+  const user = window.LIAI?.getCurrentUser?.();
+  if (user) location.href = 'dashboard.html';
+
+  // Allow Enter key
+  document.getElementById('recover-email')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendCode();
+  });
+});
+</script>
+</body>
+</html>
+<script>
+// Override sendCode with real Firebase
+const _origSend = window.sendCode;
+window.sendCode = async function() {
+  const email = document.getElementById('recover-email').value.trim();
+  const err   = document.getElementById('email-error');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.classList.add('show'); return; }
+  err.classList.remove('show');
+  setLoading('btn-step1', true);
+  try {
+    await ElhyFirebase.resetPassword(email);
+    const parts = email.split('@');
+    document.getElementById('masked-email').textContent = parts[0].substring(0,2) + '***@' + parts[1];
+    goStep(2);
+    startResendTimer();
+    document.querySelector('.otp-input').focus();
+  } catch(e) {
+    setLoading('btn-step1', false);
+    const msgs = { 'auth/user-not-found': 'No existe cuenta con ese correo', 'auth/invalid-email': 'Correo inválido' };
+    alert(msgs[e.code] || 'Error al enviar. Intenta nuevamente');
+  }
+  setLoading('btn-step1', false);
+};
+</script>

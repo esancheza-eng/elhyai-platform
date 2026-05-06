@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Catálogo completo de cursos – ElhyAI. Capacítate con Inteligencia Artificial." />
+  <title>Cursos – ElhyAI</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Shared styles -->
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* ── Page Hero ─────────────────────────────────────────── */
+    .page-hero {
+      padding: 120px 0 60px;
+      text-align: center;
+      background: linear-gradient(180deg, var(--navy-mid) 0%, var(--navy) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 400px;
+      background: radial-gradient(ellipse, rgba(32,96,192,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .page-hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 1rem;
+    }
+    .page-hero h1 span { color: var(--gold); }
+    .page-hero p {
+      color: var(--grey-light);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+
+    /* ── Breadcrumb ─────────────────────────────────────────── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+      color: var(--grey);
+    }
+    .breadcrumb a { color: var(--gold); }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb i { font-size: 0.6rem; }
+
+    /* ── Toolbar (search + filters + sort) ─────────────────── */
+    .catalog-toolbar {
+      background: var(--navy-mid);
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+      padding: 1.25rem 0;
+      position: sticky;
+      top: 64px;
+      z-index: 90;
+    }
+    .toolbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 220px;
+      position: relative;
+    }
+    .search-box i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--grey);
+      font-size: 0.9rem;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 0.65rem 1rem 0.65rem 2.5rem;
+      background: var(--navy-light);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 10px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      transition: border-color var(--transition);
+    }
+    .search-box input::placeholder { color: var(--grey); }
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    .filter-chips {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .chip {
+      padding: 0.45rem 1rem;
+      border-radius: 99px;
+      border: 1px solid rgba(201,168,76,0.2);
+      background: transparent;
+      color: var(--grey-light);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: 'DM Sans', sans-serif;
+    }
+    .chip:hover, .chip.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--navy);
+    }
+
+    .sort-select {
+      padding: 0.65rem 1rem;
+      background: var(--navy-light);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 10px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .sort-select:focus { outline: none; border-color: var(--gold); }
+    .sort-select option { background: var(--navy-mid); }
+
+    .results-count {
+      color: var(--grey);
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    .results-count span { color: var(--gold); font-weight: 600; }
+
+    /* ── Layout toggle ──────────────────────────────────────── */
+    .layout-btns {
+      display: flex;
+      gap: 0.3rem;
+    }
+    .layout-btn {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      border: 1px solid rgba(201,168,76,0.15);
+      background: transparent;
+      color: var(--grey);
+      display: grid;
+      place-items: center;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .layout-btn.active, .layout-btn:hover {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--navy);
+    }
+
+    /* ── Main catalog layout ────────────────────────────────── */
+    .catalog-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    /* ── Sidebar filters ────────────────────────────────────── */
+    .sidebar-filters {
+      position: sticky;
+      top: 130px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      backdrop-filter: blur(12px);
+    }
+    .sidebar-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--gold);
+      margin-bottom: 1.25rem;
+    }
+    .filter-group { margin-bottom: 1.75rem; }
+    .filter-group-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--grey-light);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.75rem;
+    }
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.4rem 0;
+      cursor: pointer;
+      color: var(--grey-light);
+      font-size: 0.875rem;
+      transition: color var(--transition);
+    }
+    .filter-option:hover { color: var(--white); }
+    .filter-option input[type="checkbox"] {
+      appearance: none;
+      width: 16px; height: 16px;
+      border: 1.5px solid rgba(201,168,76,0.3);
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .filter-option input[type="checkbox"]:checked {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+    .filter-option input[type="checkbox"]:checked::after {
+      content: '✓';
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      color: var(--navy);
+      font-weight: 700;
+    }
+    .filter-count {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--grey);
+      background: rgba(255,255,255,0.05);
+      padding: 0.1rem 0.45rem;
+      border-radius: 99px;
+    }
+
+    /* Price range */
+    .price-range-display {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--grey);
+      margin-bottom: 0.5rem;
+    }
+    .price-range-display span { color: var(--gold); }
+    input[type="range"] {
+      width: 100%;
+      appearance: none;
+      height: 4px;
+      background: linear-gradient(90deg, var(--gold) var(--pct, 80%), var(--navy-light) 0);
+      border-radius: 99px;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: 2px solid var(--navy);
+      cursor: pointer;
+    }
+
+    /* Star rating filter */
+    .star-filter {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .star-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      padding: 0.25rem 0;
+    }
+    .star-row .stars i { color: #f5a623; font-size: 0.8rem; }
+    .star-row .stars i.empty { color: var(--grey); }
+    .star-row span { color: var(--grey); font-size: 0.8rem; margin-left: auto; }
+    .star-row:hover span, .star-row:hover .label { color: var(--white); }
+    .star-row .label { font-size: 0.78rem; color: var(--grey-light); }
+
+    .clear-filters-btn {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--gold);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-top: 0.5rem;
+    }
+    .clear-filters-btn:hover { background: rgba(201,168,76,0.1); }
+
+    /* ── Course grid ─────────────────────────────────────────── */
+    .courses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .courses-grid.list-view {
+      grid-template-columns: 1fr;
+    }
+
+    /* ── Course card ─────────────────────────────────────────── */
+    .course-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .course-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--glow-blue);
+      border-color: rgba(201,168,76,0.3);
+    }
+
+    /* List view card */
+    .courses-grid.list-view .course-card {
+      flex-direction: row;
+    }
+    .courses-grid.list-view .course-thumb {
+      width: 220px;
+      flex-shrink: 0;
+    }
+    .courses-grid.list-view .course-thumb img {
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .course-badge {
+      position: absolute;
+      top: 1rem; left: 1rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 99px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      z-index: 2;
+    }
+    .badge-nuevo    { background: var(--gold); color: var(--navy); }
+    .badge-popular  { background: rgba(32,96,192,0.8); color: white; border: 1px solid var(--blue-glow); }
+    .badge-oferta   { background: rgba(220,50,50,0.85); color: white; }
+
+    .course-thumb {
+      position: relative;
+      height: 180px;
+      overflow: hidden;
+    }
+    .course-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .course-card:hover .course-thumb img { transform: scale(1.05); }
+    .thumb-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(5,13,26,0.7) 0%, transparent 60%);
+    }
+    .play-btn {
+      position: absolute;
+      bottom: 1rem; right: 1rem;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(201,168,76,0.9);
+      display: grid;
+      place-items: center;
+      color: var(--navy);
+      font-size: 0.85rem;
+      transition: all var(--transition);
+      opacity: 0;
+    }
+    .course-card:hover .play-btn { opacity: 1; transform: scale(1.05); }
+
+    .course-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .course-category {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 0.5rem;
+    }
+    .course-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 0.6rem;
+      line-height: 1.3;
+    }
+    .course-desc {
+      font-size: 0.83rem;
+      color: var(--grey-light);
+      line-height: 1.55;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .courses-grid.list-view .course-desc { -webkit-line-clamp: 3; }
+
+    .course-meta {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.78rem;
+      color: var(--grey);
+    }
+    .meta-item i { color: var(--blue-glow); font-size: 0.75rem; }
+
+    .course-rating {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.8rem;
+    }
+    .stars-display { display: flex; gap: 2px; }
+    .stars-display i { color: #f5a623; font-size: 0.72rem; }
+    .rating-score { font-size: 0.8rem; font-weight: 600; color: var(--white); }
+    .rating-count { font-size: 0.75rem; color: var(--grey); }
+
+    .course-footer {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .price-group { display: flex; align-items: baseline; gap: 0.5rem; }
+    .price-current {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--gold);
+    }
+    .price-original {
+      font-size: 0.85rem;
+      color: var(--grey);
+      text-decoration: line-through;
+    }
+    .discount-pct {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(220,50,50,0.7);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+    }
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn-wishlist {
+      width: 38px; height: 38px;
+      border-radius: 8px;
+      border: 1px solid rgba(201,168,76,0.2);
+      background: transparent;
+      color: var(--grey);
+      display: grid;
+      place-items: center;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn-wishlist:hover, .btn-wishlist.active {
+      color: #e74c3c;
+      border-color: #e74c3c;
+      background: rgba(231,76,60,0.1);
+    }
+    .btn-buy {
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      color: var(--navy);
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .btn-buy:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-buy.enrolled {
+      background: linear-gradient(135deg, var(--blue), var(--blue-glow));
+      color: white;
+    }
+
+    /* Progress bar on enrolled cards */
+    .enrollment-bar {
+      margin-top: 0.75rem;
+    }
+    .enrollment-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--grey);
+      margin-bottom: 0.3rem;
+    }
+    .enrollment-label span { color: var(--gold); }
+    .bar-track {
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--blue-glow), var(--gold));
+    }
+
+    /* ── Instructor info (list view) ─────────────────────────── */
+    .instructor-info {
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .courses-grid.list-view .instructor-info { display: flex; }
+    .instructor-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--blue-glow));
+      display: grid;
+      place-items: center;
+      font-size: 0.7rem;
+      color: white;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .instructor-name { font-size: 0.78rem; color: var(--grey-light); }
+
+    /* ── Empty state ─────────────────────────────────────────── */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 5rem 2rem;
+    }
+    .empty-state i { font-size: 3rem; color: var(--grey); margin-bottom: 1rem; }
+    .empty-state h3 { font-size: 1.3rem; color: var(--grey-light); margin-bottom: 0.5rem; }
+    .empty-state p { color: var(--grey); font-size: 0.9rem; }
+
+    /* ── Pagination ──────────────────────────────────────────── */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 3rem;
+    }
+    .page-btn {
+      width: 38px; height: 38px;
+      border-radius: 8px;
+      border: 1px solid rgba(201,168,76,0.15);
+      background: transparent;
+      color: var(--grey-light);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all var(--transition);
+    }
+    .page-btn:hover, .page-btn.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--navy);
+      font-weight: 700;
+    }
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ── Course detail drawer ────────────────────────────────── */
+    .course-drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5,13,26,0.85);
+      backdrop-filter: blur(6px);
+      z-index: 200;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.35s ease;
+    }
+    .course-drawer-overlay.open { opacity: 1; visibility: visible; }
+    .course-drawer {
+      position: absolute;
+      right: 0; top: 0; bottom: 0;
+      width: min(600px, 100vw);
+      background: var(--navy-mid);
+      border-left: 1px solid var(--glass-border);
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+      padding: 0;
+    }
+    .course-drawer-overlay.open .course-drawer { transform: translateX(0); }
+    .drawer-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .drawer-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(5,13,26,0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    .drawer-body { padding: 1.75rem; }
+    .drawer-category { color: var(--gold); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem; }
+    .drawer-title { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; margin-bottom: 0.75rem; }
+    .drawer-desc { color: var(--grey-light); font-size: 0.9rem; line-height: 1.65; margin-bottom: 1.5rem; }
+    .drawer-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      background: var(--navy-light);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .drawer-stat { text-align: center; }
+    .drawer-stat-val { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--gold); }
+    .drawer-stat-lbl { font-size: 0.72rem; color: var(--grey); margin-top: 0.2rem; }
+    .drawer-section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .drawer-section-title i { color: var(--gold); }
+    .drawer-includes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .drawer-include-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.83rem;
+      color: var(--grey-light);
+    }
+    .drawer-include-item i { color: var(--blue-glow); width: 16px; }
+    .module-list { margin-bottom: 1.5rem; }
+    .module-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.85rem;
+      color: var(--grey-light);
+    }
+    .module-item:last-child { border: none; }
+    .module-num {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: rgba(32,96,192,0.2);
+      border: 1px solid var(--blue-glow);
+      display: grid;
+      place-items: center;
+      font-size: 0.65rem;
+      color: var(--blue-glow);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .module-duration { margin-left: auto; font-size: 0.75rem; color: var(--grey); }
+    .drawer-price-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--navy-light);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .drawer-price { font-family: 'Syne', sans-serif; font-size: 1.75rem; font-weight: 800; color: var(--gold); }
+    .drawer-price small { font-size: 0.75rem; color: var(--grey); text-decoration: line-through; display: block; font-family: 'DM Sans', sans-serif; }
+    .btn-enroll {
+      width: 100%;
+      padding: 1rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn-enroll:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: var(--glow-gold); }
+
+    /* ── Mobile sidebar ────────────────────────────────────── */
+    .mobile-filter-btn {
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1rem;
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--gold);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5,13,26,0.8);
+      z-index: 150;
+    }
+
+    /* ── Newsletter strip ────────────────────────────────────── */
+    .newsletter-strip {
+      background: linear-gradient(135deg, var(--navy-light), var(--navy-mid));
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      text-align: center;
+      max-width: 1200px;
+      margin: 0 auto 4rem;
+      padding-left: 1.5rem; padding-right: 1.5rem;
+    }
+    .newsletter-strip h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
+    .newsletter-strip p { color: var(--grey-light); font-size: 0.9rem; margin-bottom: 1.25rem; }
+    .newsletter-form {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+    .newsletter-form input {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(201,168,76,0.2);
+      background: var(--navy);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+    }
+    .newsletter-form input::placeholder { color: var(--grey); }
+    .newsletter-form input:focus { outline: none; border-color: var(--gold); }
+    .newsletter-form button {
+      padding: 0.7rem 1.25rem;
+      border-radius: 8px;
+      background: var(--gold);
+      color: var(--navy);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity var(--transition);
+    }
+    .newsletter-form button:hover { opacity: 0.85; }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .catalog-main { grid-template-columns: 1fr; }
+      .sidebar-filters { position: fixed; left: -300px; top: 0; bottom: 0; z-index: 160; border-radius: 0; width: 280px; overflow-y: auto; transition: left 0.3s ease; }
+      .sidebar-filters.open { left: 0; }
+      .sidebar-backdrop { display: block; }
+      .mobile-filter-btn { display: flex; }
+      .toolbar-inner { gap: 0.75rem; }
+    }
+    @media (max-width: 768px) {
+      .courses-grid { grid-template-columns: 1fr; }
+      .courses-grid.list-view .course-thumb { width: 140px; }
+      .drawer-includes { grid-template-columns: 1fr; }
+      .drawer-stats { grid-template-columns: 1fr 1fr; }
+      .newsletter-form { flex-direction: column; }
+    }
+    @media (max-width: 480px) {
+      .filter-chips { display: none; }
+      .toolbar-inner { gap: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ LOADING ═══ -->
+<div id="loading-screen">
+  <div class="loader-logo">Elhy<span> Consultores</span></div>
+  <div class="loader-bar"></div>
+</div>
+
+<!-- ═══ NAVBAR (shared) ═══ -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">Elhy<span> Consultores</span></a>
+    <ul class="nav-menu" id="nav-menu">
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="cursos.html" class="active">Cursos</a></li>
+      <li><a href="index.html#nosotros">Nosotros</a></li>
+      <li><a href="index.html#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="btn-ghost" onclick="location.href='login.html'">Iniciar Sesión</button>
+      <button class="btn-primary" onclick="location.href='registro.html'">Registrarse</button>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Menú"><i class="fas fa-bars"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ PAGE HERO ═══ -->
+<section class="page-hero">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="index.html">Inicio</a>
+      <i class="fas fa-chevron-right"></i>
+      <span>Cursos</span>
+    </div>
+    <h1>Catálogo de <span>Capacitaciones</span></h1>
+    <p>Aprende con los mejores cursos de IA, tecnología y negocios digitales. Certificados avalados y actualizados constantemente.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:.5rem;color:var(--grey-light);font-size:.85rem;">
+        <i class="fas fa-graduation-cap" style="color:var(--gold)"></i> <strong id="stat-cursos">12</strong> cursos disponibles
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;color:var(--grey-light);font-size:.85rem;">
+        <i class="fas fa-users" style="color:var(--gold)"></i> <strong>+850</strong> estudiantes
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;color:var(--grey-light);font-size:.85rem;">
+        <i class="fas fa-star" style="color:var(--gold)"></i> 4.9 calificación
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CATALOG TOOLBAR ═══ -->
+<div class="catalog-toolbar">
+  <div class="toolbar-inner">
+    <button class="mobile-filter-btn" onclick="toggleSidebar()">
+      <i class="fas fa-sliders-h"></i> Filtros
+    </button>
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="catalog-search" placeholder="Buscar cursos..." oninput="renderCatalog()" />
+    </div>
+    <div class="filter-chips">
+      <button class="chip active" onclick="setCategory('todos',this)">Todos</button>
+      <button class="chip" onclick="setCategory('ia',this)">IA</button>
+      <button class="chip" onclick="setCategory('marketing',this)">Marketing</button>
+      <button class="chip" onclick="setCategory('herramientas',this)">Herramientas</button>
+      <button class="chip" onclick="setCategory('datos',this)">Datos</button>
+      <button class="chip" onclick="setCategory('cobranza',this)">Cobranza</button>
+    </div>
+    <select class="sort-select" id="sort-select" onchange="renderCatalog()">
+      <option value="default">Ordenar por</option>
+      <option value="price-asc">Precio: menor a mayor</option>
+      <option value="price-desc">Precio: mayor a menor</option>
+      <option value="rating">Mejor valorados</option>
+      <option value="newest">Más nuevos</option>
+      <option value="popular">Más populares</option>
+    </select>
+    <span class="results-count">Mostrando <span id="count-display">0</span> cursos</span>
+    <div class="layout-btns">
+      <button class="layout-btn active" id="grid-btn" title="Vista cuadrícula" onclick="setLayout('grid',this)">
+        <i class="fas fa-th-large"></i>
+      </button>
+      <button class="layout-btn" id="list-btn" title="Vista lista" onclick="setLayout('list',this)">
+        <i class="fas fa-list"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SIDEBAR BACKDROP (mobile) ═══ -->
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()" style="display:none;"></div>
+
+<!-- ═══ MAIN CATALOG ═══ -->
+<div class="catalog-main">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar-filters" id="sidebar-filters">
+    <p class="sidebar-title"><i class="fas fa-filter" style="margin-right:.5rem"></i>Filtros</p>
+
+    <!-- Nivel -->
+    <div class="filter-group">
+      <p class="filter-group-label">Nivel</p>
+      <label class="filter-option">
+        <input type="checkbox" data-filter="nivel" value="principiante" onchange="renderCatalog()" />
+        Principiante <span class="filter-count">5</span>
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" data-filter="nivel" value="intermedio" onchange="renderCatalog()" />
+        Intermedio <span class="filter-count">4</span>
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" data-filter="nivel" value="avanzado" onchange="renderCatalog()" />
+        Avanzado <span class="filter-count">3</span>
+      </label>
+    </div>
+
+    <!-- Precio -->
+    <div class="filter-group">
+      <p class="filter-group-label">Precio máximo</p>
+      <div class="price-range-display">
+        Hasta: <span id="price-val">$60</span>
+      </div>
+      <input type="range" min="0" max="60" value="60" id="price-range" oninput="updatePriceRange(this.value)" />
+    </div>
+
+    <!-- Duración -->
+    <div class="filter-group">
+      <p class="filter-group-label">Duración</p>
+      <label class="filter-option">
+        <input type="checkbox" data-filter="duracion" value="corto" onchange="renderCatalog()" />
+        Menos de 5h <span class="filter-count">3</span>
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" data-filter="duracion" value="medio" onchange="renderCatalog()" />
+        5h – 15h <span class="filter-count">6</span>
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" data-filter="duracion" value="largo" onchange="renderCatalog()" />
+        Más de 15h <span class="filter-count">3</span>
+      </label>
+    </div>
+
+    <!-- Calificación -->
+    <div class="filter-group">
+      <p class="filter-group-label">Calificación</p>
+      <div class="star-filter">
+        <div class="star-row" onclick="setRatingFilter(4.5)">
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div>
+          <span class="label">4.5+</span><span>12</span>
+        </div>
+        <div class="star-row" onclick="setRatingFilter(4.0)">
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star empty"></i></div>
+          <span class="label">4.0+</span><span>8</span>
+        </div>
+        <div class="star-row" onclick="setRatingFilter(3.5)">
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><i class="far fa-star empty"></i></div>
+          <span class="label">3.5+</span><span>3</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="clear-filters-btn" onclick="clearFilters()">
+      <i class="fas fa-times" style="margin-right:.4rem"></i>Limpiar filtros
+    </button>
+  </aside>
+
+  <!-- GRID -->
+  <div>
+    <div class="courses-grid" id="courses-grid">
+      <!-- Rendered by JS -->
+    </div>
+    <div class="pagination" id="pagination">
+      <button class="page-btn" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i></button>
+      <button class="page-btn active" id="page-1" onclick="goPage(1)">1</button>
+      <button class="page-btn" id="page-2" onclick="goPage(2)">2</button>
+      <button class="page-btn" onclick="changePage(1)"><i class="fas fa-chevron-right"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NEWSLETTER STRIP ═══ -->
+<div class="newsletter-strip" style="padding:2.5rem 1.5rem;">
+  <h3>¿Quieres recibir nuevos cursos antes que nadie?</h3>
+  <p>Suscríbete y obtén un <strong style="color:var(--gold)">10% de descuento</strong> en tu primer curso</p>
+  <div class="newsletter-form">
+    <input type="email" placeholder="tu@email.com" id="nl-email" />
+    <button onclick="subscribeNewsletter()"><i class="fas fa-paper-plane"></i> Suscribirme</button>
+  </div>
+</div>
+
+<!-- ═══ COURSE DRAWER ═══ -->
+<div class="course-drawer-overlay" id="course-drawer-overlay" onclick="closeDrawer(event)">
+  <div class="course-drawer" id="course-drawer">
+    <img src="" alt="" class="drawer-img" id="drawer-img" />
+    <button class="drawer-close" onclick="closeDrawer()"><i class="fas fa-times"></i></button>
+    <div class="drawer-body" id="drawer-body">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WHATSAPP + BACK TO TOP ═══ -->
+<a href="https://wa.me/593999999999?text=Hola%20LI%20AI%20Consultores%2C%20quiero%20información%20sobre%20los%20cursos" class="wa-float" target="_blank" aria-label="WhatsApp">
+  <i class="fab fa-whatsapp"></i>
+</a>
+<button class="back-to-top" id="back-to-top" aria-label="Ir arriba">
+  <i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">Elhy<span> Consultores</span></div>
+      <p class="footer-desc">Capacitaciones con Inteligencia Artificial para transformar tu futuro profesional.</p>
+    </div>
+    <div>
+      <p class="footer-col-title">Plataforma</p>
+      <ul class="footer-links">
+        <li><a href="cursos.html">Todos los cursos</a></li>
+        <li><a href="login.html">Iniciar sesión</a></li>
+        <li><a href="registro.html">Registrarse</a></li>
+        <li><a href="dashboard.html">Mi panel</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="footer-col-title">Empresa</p>
+      <ul class="footer-links">
+        <li><a href="index.html#nosotros">Nosotros</a></li>
+        <li><a href="index.html#faq">FAQ</a></li>
+        <li><a href="#">Términos</a></li>
+        <li><a href="#">Privacidad</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="footer-col-title">Contacto</p>
+      <ul class="footer-links">
+        <li><a href="mailto:info@elhyai.com">info@elhyai.com</a></li>
+        <li><a href="https://wa.me/593999999999">WhatsApp</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 ElhyAI. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase.js"></script>
+<script src="app.js"></script>
+<script>
+/* ── Catalog state ─────────────────────────────────── */
+let currentCategory = 'todos';
+let currentLayout   = 'grid';
+let currentPage     = 1;
+let maxPrice        = 60;
+let minRating       = 0;
+const PAGE_SIZE     = 6;
+
+/* Extended courses catalog (12 courses) */
+const CATALOG = [
+  {
+    id: 'ia-cero', emoji: '🤖',
+    title: 'Inteligencia Artificial desde Cero',
+    category: 'ia',
+    desc: 'Aprende los fundamentos de la IA, machine learning y redes neuronales con ejemplos prácticos reales.',
+    price: 49, originalPrice: 79,
+    duration: '18h', modules: 10, level: 'principiante',
+    rating: 4.9, reviews: 128,
+    badge: 'popular', enrolled: false,
+    img: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&q=80',
+    instructor: 'Ing. Luis Ibarra',
+    includes: ['Video HD', 'Certificado', 'Ejercicios prácticos', 'Soporte WhatsApp', 'Acceso de por vida', 'Material descargable'],
+    modulesDetail: ['¿Qué es la Inteligencia Artificial?','Machine Learning básico','Redes Neuronales','Python para IA','Proyectos prácticos','IA en negocios','Herramientas IA 2025','Automatización con IA','Caso de estudio real','Certificación final'],
+    durHours: 18
+  },
+  {
+    id: 'marketing-ia', emoji: '📱',
+    title: 'Marketing Digital con IA',
+    category: 'marketing',
+    desc: 'Domina las estrategias de marketing potenciadas con IA: contenido, ads, funnels y analítica avanzada.',
+    price: 39, originalPrice: 65,
+    duration: '14h', modules: 8, level: 'principiante',
+    rating: 4.8, reviews: 94,
+    badge: 'nuevo', enrolled: false,
+    img: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&q=80',
+    instructor: 'Ing. Luis Ibarra',
+    includes: ['Video HD', 'Certificado', 'Plantillas descargables', 'Soporte WhatsApp', 'Casos reales', 'Comunidad privada'],
+    modulesDetail: ['Fundamentos marketing digital','SEO con IA','Creación de contenido IA','Ads inteligentes','Email marketing automático','Funnels de conversión','Analítica y KPIs','Proyecto final'],
+    durHours: 14
+  },
+  {
+    id: 'google-drive', emoji: '💾',
+    title: 'Google Drive Profesional',
+    category: 'herramientas',
+    desc: 'Organiza, colabora y automatiza con Google Drive, Docs, Sheets, Slides y Google Apps Script.',
+    price: 25, originalPrice: 40,
+    duration: '8h', modules: 6, level: 'principiante',
+    rating: 4.7, reviews: 67,
+    badge: null, enrolled: false,
+    img: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=600&q=80',
+    instructor: 'Ing. Luis Ibarra',
+    includes: ['Video HD', 'Certificado', 'Plantillas Google', 'Soporte WhatsApp', 'Scripts incluidos', 'Acceso de por vida'],
+    modulesDetail: ['Google Drive básico','Google Docs avanzado','Google Sheets con fórmulas','Google Slides','Apps Script automatización','Proyectos colaborativos'],
+    durHours: 8
+  },
+  {
+    id: 'chatgpt-auto', emoji: '⚡',
+    title: 'Automatización con ChatGPT',
+    category: 'ia',
+    desc: 'Crea flujos de trabajo automatizados usando ChatGPT, Make, Zapier y APIs para multiplicar tu productividad.',
+    price: 45, originalPrice: 75,
+    duration: '16h', modules: 9, level: 'intermedio',
+    rating: 4.9, reviews: 110,
+    badge: 'popular', enrolled: false,
+    img: 'https://images.unsplash.com/photo-1676299081847-824916de030a?w=600&q=80',
+    instructor: 'Ing. Luis Ibarra',
+    includes: ['Video HD', 'Certificado', 'Prompts avanzados', 'API keys guiadas', 'Automatizaciones reales', 'Soporte prioritario'],
+    modulesDetail: ['ChatGPT API setup','Prompt Engineering avanzado','Integración con Make','Zapier + ChatGPT','Bots automatizados','Workflows de negocio','IA para ventas','Soporte con IA','Proyecto final'],
+    durHours: 16
+  },
+  {
+    id: 'excel-datos', emoji: '📊',
+    title: 'Excel y Análisis de Datos',
+    category: 'datos',
+    desc: 'Domina Excel desde tablas dinámicas hasta Power BI y análisis predictivo con IA integrada.',
+    price: 35, originalPrice: 55,
+    duration: '20h', modules: 11, level: 'intermedio',
+    rating: 4.8, reviews: 83,
+    badge: null, enrolled: false,
+    img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80',
+    instructor: 'Ing. Luis Ibarra',
+    includes: ['Video HD', 'Certificado', 'Datasets reales', 'Power BI incluido', 'Ejercicios prácticos', 'Acceso de por vida'],
+    modulesDetail: ['Excel avanzado','Fórmulas complejas','Tablas dinámicas','Dashboards','Macros VBA','Power Query','Power BI básico','Power BI avanzado','Estadística básica','Análisis predictivo','Proyecto final'],
+    durHours: 20
+  },
+  {
+    id: 'cobranza-ia', emoji: '💰',
+    title: 'Cobranza Inteligente con IA',
+    category: 'cobranza',
+    desc: 'Sistema profesional de gestión de cobranzas: chatbots, segmentación de cartera y estrategias de negociación.',
+    price: 55, originalPrice: 90,
+    duration: '22h', modules: 12, level: 'avanzado',
+    rating: 5.0, reviews: 56,
+    badge: 'nuevo', enrolled: false,
+    img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&q=80',
+    instructor: 'Ing. Luis Ibarra',
+    includes: ['Video HD', 'Certificado', 'Herramientas incluidas', 'Plantillas Excel', 'Chatbot configurado', 'Soporte prioritario'],
+    modulesDetail: ['Marco legal Ecuador','Segmentación de cartera','Estrategias de contacto','WhatsApp masivo','Chatbot de cobranza','Excel para cobranza','Negociación efectiva','Acuerdos de pago','KPIs y métricas','Gestión de campo','Reportes automáticos','Certificación'],
+    durHours: 22
+  },
+  {
+    id: 'python-ia', emoji: '🐍',
+    title: 'Python para Inteligencia Artificial',
+    category: 'ia',
+    desc: 'Aprende Python desde cero y aplícalo directamente en proyectos reales de machine learning y deep learning.',
+    price: 55, originalPrice: 89,
+    duration: '25h', modules: 14, level: 'intermedio',
+    rating: 4.9, reviews: 72,
+    badge: null, enrolled: false,
+    img: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=600&q=80',
+    instructor: 'Ing. Luis Ibarra',
+    includes: ['Video HD', 'Certificado', 'Código fuente', 'Notebooks Jupyter', 'Proyectos reales', 'Soporte técnico'],
+    modulesDetail: ['Python básico','Estructuras de datos','POO en Python','NumPy y Pandas','Matplotlib','Scikit-learn','Regresión lineal','Clasificación','Clustering','Redes Neuronales','TensorFlow básico','NLP básico','Visión artificial','Proyecto final'],
+    durHours: 25
+  },
+  {
+    id: 'canva-ia', emoji: '🎨',
+    title: 'Diseño Digital con Canva e IA',
+    category: 'herramientas',
+    desc: 'Crea contenido visual impactante para redes sociales y negocios usando Canva Pro y herramientas IA de diseño.',
+    price: 29, originalPrice: 45,
+    duration: '10h', modules: 7, level: 'principiante',
+    rating: 4.7, reviews: 101,
+    badge: null, enrolled: false,
+    img: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&q=80',
+    instructor: 'Ing. Luis Ibarra',
+    includes: ['Video HD', 'Certificado', 'Templates premium', 'Recursos gráficos', 'Canva Pro tips', 'Acceso de por vida'],
+    modulesDetail: ['Canva interface','Branding digital','Social media design','Presentaciones','Logos e identidad','IA generativa en diseño','Portfolio final'],
+    durHours: 10
+  },
+  {
+    id: 'ventas-ia', emoji: '🎯',
+    title: 'Ventas Digitales con IA',
+    category: 'marketing',
+    desc: 'Técnicas avanzadas de ventas consultivas, cierre efectivo y herramientas IA para multiplicar tus conversiones.',
+    price: 45, originalPrice: 70,
+    duration: '15h', modules: 8, level: 'intermedio',
+    rating: 4.8, reviews: 63,
+    badge: 'oferta', enrolled: false,
+    img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80',
+    instructor: 'Ing. Luis Ibarra',
+    includes: ['Video HD', 'Certificado', 'Scripts de ventas', 'CRM configurado', 'Role-play grabado', 'Soporte WhatsApp'],
+    modulesDetail: ['Psicología del comprador','Propuesta de valor','Prospección digital','WhatsApp para ventas','LinkedIn prospecting','Cierre de ventas','Manejo de objeciones','IA en CRM'],
+    durHours: 15
+  },
+  {
+    id: 'finanzas-personales', emoji: '💳',
+    title: 'Finanzas Personales e Inversión',
+    category: 'datos',
+    desc: 'Gestiona tu dinero de forma inteligente: presupuesto, deudas, inversión y libertad financiera con IA.',
+    price: 35, originalPrice: 55,
+    duration: '12h', modules: 7, level: 'principiante',
+    rating: 4.6, reviews: 88,
+    badge: null, enrolled: false,
+    img: 'https://images.unsplash.com/photo-1579621970795-87facc2f976d?w=600&q=80',
+    instructor: 'Ing. Luis Ibarra',
+    includes: ['Video HD', 'Certificado', 'Calculadoras incluidas', 'Plan financiero', 'Plantillas Excel', 'Acceso de por vida'],
+    modulesDetail: ['Diagnóstico financiero','Presupuesto base 0','Eliminación de deudas','Ahorro sistemático','Inversión básica','Fondos y ETFs','Libertad financiera'],
+    durHours: 12
+  },
+  {
+    id: 'productivity-ia', emoji: '⏱️',
+    title: 'Productividad con IA',
+    category: 'herramientas',
+    desc: 'Organiza tu vida y trabajo con Notion, Todoist, IA generativa y sistemas de productividad probados.',
+    price: 29, originalPrice: 45,
+    duration: '9h', modules: 6, level: 'principiante',
+    rating: 4.7, reviews: 77,
+    badge: null, enrolled: false,
+    img: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=600&q=80',
+    instructor: 'Ing. Luis Ibarra',
+    includes: ['Video HD', 'Certificado', 'Templates Notion', 'Sistema GTD', 'Workflows IA', 'Soporte WhatsApp'],
+    modulesDetail: ['GTD metodología','Notion workspace','Gestión de tareas','IA para focus','Calendario inteligente','Sistema personal'],
+    durHours: 9
+  },
+  {
+    id: 'ecommerce-ia', emoji: '🛒',
+    title: 'E-Commerce con IA',
+    category: 'marketing',
+    desc: 'Crea y escala tu tienda online usando IA para logística, atención al cliente, precios dinámicos y más.',
+    price: 49, originalPrice: 80,
+    duration: '18h', modules: 10, level: 'avanzado',
+    rating: 4.9, reviews: 45,
+    badge: 'nuevo', enrolled: false,
+    img: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&q=80',
+    instructor: 'Ing. Luis Ibarra',
+    includes: ['Video HD', 'Certificado', 'Shopify setup', 'IA configurada', 'Ads incluidos', 'Soporte premium'],
+    modulesDetail: ['Validación de producto','Tienda con Shopify','SEO e-commerce','Producto IA descriptions','Ads con IA','Logística inteligente','Customer service IA','Analítica avanzada','Escalar ventas','Proyecto real'],
+    durHours: 18
+  }
+];
+
+/* ── State ─────────────────────────────────────────── */
+let filteredCourses = [...CATALOG];
+let ratingFilter    = 0;
+
+/* ── Helpers ───────────────────────────────────────── */
+function stars(r) {
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    if (r >= i) html += '<i class="fas fa-star"></i>';
+    else if (r >= i - 0.5) html += '<i class="fas fa-star-half-alt"></i>';
+    else html += '<i class="far fa-star"></i>';
+  }
+  return html;
+}
+
+function badgeHtml(badge) {
+  if (!badge) return '';
+  const labels = { nuevo: 'Nuevo', popular: 'Popular', oferta: 'Oferta' };
+  return `<span class="course-badge badge-${badge}">${labels[badge]}</span>`;
+}
+
+function discount(orig, curr) {
+  return Math.round((1 - curr / orig) * 100);
+}
+
+function levelLabel(l) {
+  return { principiante: 'Principiante', intermedio: 'Intermedio', avanzado: 'Avanzado' }[l] || l;
+}
+
+/* ── Render ────────────────────────────────────────── */
+function renderCatalog() {
+  const q     = document.getElementById('catalog-search').value.toLowerCase();
+  const sort  = document.getElementById('sort-select').value;
+  const nFilters = [...document.querySelectorAll('[data-filter="nivel"]:checked')].map(c => c.value);
+
+  let results = CATALOG.filter(c => {
+    if (currentCategory !== 'todos' && c.category !== currentCategory) return false;
+    if (q && !c.title.toLowerCase().includes(q) && !c.desc.toLowerCase().includes(q)) return false;
+    if (c.price > maxPrice) return false;
+    if (c.rating < ratingFilter) return false;
+    if (nFilters.length && !nFilters.includes(c.level)) return false;
+    return true;
+  });
+
+  // Sort
+  if (sort === 'price-asc')  results.sort((a,b) => a.price - b.price);
+  if (sort === 'price-desc') results.sort((a,b) => b.price - a.price);
+  if (sort === 'rating')     results.sort((a,b) => b.rating - a.rating);
+  if (sort === 'popular')    results.sort((a,b) => b.reviews - a.reviews);
+
+  filteredCourses = results;
+  document.getElementById('count-display').textContent = results.length;
+
+  // Paginate
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page  = results.slice(start, start + PAGE_SIZE);
+
+  const grid = document.getElementById('courses-grid');
+  grid.className = 'courses-grid' + (currentLayout === 'list' ? ' list-view' : '');
+
+  if (!page.length) {
+    grid.innerHTML = `<div class="empty-state">
+      <i class="fas fa-search"></i>
+      <h3>Sin resultados</h3>
+      <p>Intenta con otros filtros o términos de búsqueda</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = page.map(c => `
+    <div class="course-card">
+      ${badgeHtml(c.badge)}
+      <div class="course-thumb">
+        <img src="${c.img}" alt="${c.title}" loading="lazy" />
+        <div class="thumb-overlay"></div>
+        <button class="play-btn" onclick="openDrawer('${c.id}')"><i class="fas fa-eye"></i></button>
+      </div>
+      <div class="course-body">
+        <p class="course-category">${c.emoji} ${c.category.toUpperCase()}</p>
+        <h3 class="course-title">${c.title}</h3>
+        <div class="instructor-info">
+          <div class="instructor-avatar">${c.instructor.split(' ').pop()[0]}</div>
+          <span class="instructor-name">${c.instructor}</span>
+        </div>
+        <p class="course-desc">${c.desc}</p>
+        <div class="course-meta">
+          <span class="meta-item"><i class="fas fa-clock"></i>${c.duration}</span>
+          <span class="meta-item"><i class="fas fa-layer-group"></i>${c.modules} módulos</span>
+          <span class="meta-item"><i class="fas fa-signal"></i>${levelLabel(c.level)}</span>
+        </div>
+        <div class="course-rating">
+          <div class="stars-display">${stars(c.rating)}</div>
+          <span class="rating-score">${c.rating}</span>
+          <span class="rating-count">(${c.reviews})</span>
+        </div>
+        ${c.enrolled ? `<div class="enrollment-bar">
+          <div class="enrollment-label"><span>Progreso</span><span>${Math.floor(Math.random()*80)+10}%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.floor(Math.random()*80)+10}%"></div></div>
+        </div>` : ''}
+        <div class="course-footer">
+          <div class="price-group">
+            <span class="price-current">$${c.price}</span>
+            <span class="price-original">$${c.originalPrice}</span>
+            <span class="discount-pct">-${discount(c.originalPrice,c.price)}%</span>
+          </div>
+          <div class="card-actions">
+            <button class="btn-wishlist" onclick="toggleWishlist(this)" title="Favoritos"><i class="far fa-heart"></i></button>
+            ${c.enrolled
+              ? `<button class="btn-buy enrolled" onclick="location.href='dashboard.html'"><i class="fas fa-play"></i> Continuar</button>`
+              : `<button class="btn-buy" onclick="handleBuy('${c.id}')"><i class="fas fa-shopping-cart"></i> Comprar</button>`
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ── Drawer ─────────────────────────────────────────── */
+function openDrawer(id) {
+  const c = CATALOG.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('drawer-img').src = c.img;
+  document.getElementById('drawer-body').innerHTML = `
+    <p class="drawer-category">${c.emoji} ${c.category.toUpperCase()}</p>
+    <h2 class="drawer-title">${c.title}</h2>
+    <p class="drawer-desc">${c.desc}</p>
+    <div class="drawer-stats">
+      <div class="drawer-stat"><div class="drawer-stat-val">${c.duration}</div><div class="drawer-stat-lbl">Duración</div></div>
+      <div class="drawer-stat"><div class="drawer-stat-val">${c.modules}</div><div class="drawer-stat-lbl">Módulos</div></div>
+      <div class="drawer-stat"><div class="drawer-stat-val">${c.rating}★</div><div class="drawer-stat-lbl">Calificación</div></div>
+    </div>
+    <div class="drawer-section-title"><i class="fas fa-check-circle"></i> ¿Qué incluye?</div>
+    <div class="drawer-includes">
+      ${c.includes.map(i => `<div class="drawer-include-item"><i class="fas fa-check"></i>${i}</div>`).join('')}
+    </div>
+    <div class="drawer-section-title"><i class="fas fa-list-ul"></i> Contenido del curso</div>
+    <div class="module-list">
+      ${c.modulesDetail.map((m,i) => `
+        <div class="module-item">
+          <div class="module-num">${i+1}</div>
+          <span>${m}</span>
+          <span class="module-duration">${Math.floor(c.durHours/c.modules*60)}min</span>
+        </div>
+      `).join('')}
+    </div>
+    <div class="drawer-price-row">
+      <div>
+        <div class="drawer-price">$${c.price} <small>$${c.originalPrice}</small></div>
+        <div style="color:var(--gold);font-size:.78rem;margin-top:.2rem;">Ahorra ${discount(c.originalPrice,c.price)}%</div>
+      </div>
+      <div class="course-rating" style="margin:0">
+        <div class="stars-display">${stars(c.rating)}</div>
+        <span class="rating-score">${c.rating}</span>
+        <span class="rating-count">(${c.reviews} reseñas)</span>
+      </div>
+    </div>
+    <button class="btn-enroll" onclick="handleBuy('${c.id}')">
+      <i class="fas fa-shopping-cart"></i> Inscribirme por $${c.price}
+    </button>
+    <p style="text-align:center;color:var(--grey);font-size:.78rem;margin-top:.75rem;">
+      <i class="fas fa-shield-alt" style="color:var(--gold)"></i> Garantía de satisfacción 30 días
+    </p>
+  `;
+  document.getElementById('course-drawer-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer(e) {
+  if (e && e.target !== document.getElementById('course-drawer-overlay')) return;
+  document.getElementById('course-drawer-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ── Filters ────────────────────────────────────────── */
+function setCategory(cat, el) {
+  currentCategory = cat;
+  currentPage = 1;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderCatalog();
+}
+
+function updatePriceRange(val) {
+  maxPrice = parseInt(val);
+  const pct = (val / 60) * 100;
+  document.getElementById('price-range').style.setProperty('--pct', pct + '%');
+  document.getElementById('price-val').textContent = '$' + val;
+  renderCatalog();
+}
+
+function setRatingFilter(r) {
+  ratingFilter = ratingFilter === r ? 0 : r;
+  renderCatalog();
+}
+
+function clearFilters() {
+  currentCategory = 'todos';
+  maxPrice = 60;
+  ratingFilter = 0;
+  currentPage = 1;
+  document.getElementById('catalog-search').value = '';
+  document.getElementById('sort-select').value = 'default';
+  document.getElementById('price-range').value = 60;
+  document.getElementById('price-val').textContent = '$60';
+  document.querySelectorAll('.chip').forEach((c,i) => c.classList.toggle('active', i === 0));
+  document.querySelectorAll('[data-filter]').forEach(c => c.checked = false);
+  renderCatalog();
+}
+
+function toggleSidebar() {
+  const s = document.getElementById('sidebar-filters');
+  const b = document.getElementById('sidebar-backdrop');
+  const open = s.classList.toggle('open');
+  b.style.display = open ? 'block' : 'none';
+}
+
+function setLayout(type, el) {
+  currentLayout = type;
+  document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderCatalog();
+}
+
+function changePage(delta) { goPage(currentPage + delta); }
+function goPage(p) {
+  const max = Math.ceil(filteredCourses.length / PAGE_SIZE);
+  if (p < 1 || p > max) return;
+  currentPage = p;
+  // update pagination UI
+  document.querySelectorAll('.page-btn[id^="page-"]').forEach(b => {
+    b.classList.toggle('active', b.id === 'page-' + p);
+  });
+  renderCatalog();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleWishlist(btn) {
+  btn.classList.toggle('active');
+  btn.innerHTML = btn.classList.contains('active') ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
+}
+
+function handleBuy(id) {
+  const user = window.LIAI?.getCurrentUser?.();
+  if (!user) { location.href = 'login.html'; return; }
+  const c = CATALOG.find(x => x.id === id);
+  alert(`Redirigiendo al pago para: ${c.title} – $${c.price}`);
+}
+
+function subscribeNewsletter() {
+  const email = document.getElementById('nl-email').value.trim();
+  if (!email || !email.includes('@')) { alert('Ingresa un email válido'); return; }
+  alert('✅ ¡Gracias! Te enviamos un cupón de 10% de descuento a ' + email);
+  document.getElementById('nl-email').value = '';
+}
+
+/* ── Init ───────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  window.LIAI?.initLoadingScreen?.();
+  window.LIAI?.initNavbar?.();
+  window.LIAI?.initBackToTop?.();
+  // Auth-aware nav
+  const user = window.LIAI?.getCurrentUser?.();
+  if (user) {
+    document.querySelector('.nav-actions').innerHTML = `
+      <span style="color:var(--gold);font-size:.85rem">Hola, ${user.name.split(' ')[0]}</span>
+      <button class="btn-primary" onclick="location.href='dashboard.html'">Mi Panel</button>
+    `;
+  }
+  renderCatalog();
+});
+</script>
+</body>
+</html>

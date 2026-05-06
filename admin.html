@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Administrador — ElhyAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .admin-stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .chart-bar-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+      margin-top: .5rem;
+    }
+    .chart-bar-item { display: flex; align-items: center; gap: .75rem; }
+    .chart-bar-label { font-size: .75rem; color: var(--grey); width: 120px; flex-shrink: 0; }
+    .chart-bar-track { flex: 1; height: 8px; background: var(--navy-light); border-radius: 99px; overflow: hidden; }
+    .chart-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--blue-glow), var(--gold)); }
+    .chart-bar-val { font-size: .78rem; font-weight: 700; color: var(--gold); width: 30px; text-align: right; }
+
+    .course-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; }
+    .tag-input-wrap { display: flex; flex-wrap: wrap; gap: .4rem; padding: .5rem .75rem; background: rgba(14,32,64,.5); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); }
+    .tag { background: rgba(32,96,192,.15); color: #7bb8f8; font-size: .75rem; padding: .2rem .6rem; border-radius: 99px; display: flex; align-items: center; gap: .35rem; }
+    .tag button { background: none; font-size: .7rem; color: inherit; cursor: pointer; }
+
+    .upload-zone {
+      border: 2px dashed var(--glass-border);
+      border-radius: var(--radius-sm);
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color var(--transition);
+    }
+    .upload-zone:hover { border-color: var(--blue-glow); }
+    .upload-zone i { font-size: 2rem; color: var(--grey); margin-bottom: .5rem; }
+    .upload-zone p { font-size: .85rem; color: var(--grey); }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar scrolled">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo">LI <span>AI</span> Consultores <span style="font-size:.7rem;background:rgba(239,68,68,.12);color:#f87171;padding:.15rem .5rem;border-radius:99px;margin-left:.5rem">ADMIN</span></a>
+    <div class="nav-actions">
+      <button id="theme-toggle" class="btn btn-outline btn-sm"><i class="fa-solid fa-moon"></i></button>
+      <a href="dashboard.html" class="btn btn-outline btn-sm"><i class="fa-solid fa-user"></i> Mi Cuenta</a>
+      <button onclick="LIAI.logoutUser()" class="btn btn-outline btn-sm" style="color:#f87171;border-color:rgba(248,113,113,.3)">
+        <i class="fa-solid fa-right-from-bracket"></i> Salir
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="dash-layout">
+
+  <!-- Sidebar -->
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="avatar-wrap" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);color:#fca5a5;font-size:1.5rem">🛡️</div>
+      <div class="user-name">Administrador</div>
+      <div class="user-role" style="background:rgba(239,68,68,.1);color:#f87171">Super Admin</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Principal</div>
+      <a href="#" class="sidebar-link active" onclick="adminTab('overview',this)"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+      <a href="#" class="sidebar-link" onclick="adminTab('students',this)"><i class="fa-solid fa-users"></i> Estudiantes</a>
+      <a href="#" class="sidebar-link" onclick="adminTab('payments',this)"><i class="fa-solid fa-credit-card"></i> Pagos</a>
+
+      <div class="sidebar-label" style="margin-top:1rem">Contenido</div>
+      <a href="#" class="sidebar-link" onclick="adminTab('courses',this)"><i class="fa-solid fa-book"></i> Cursos</a>
+      <a href="#" class="sidebar-link" onclick="adminTab('new-course',this)"><i class="fa-solid fa-plus-circle"></i> Nuevo Curso</a>
+      <a href="#" class="sidebar-link" onclick="adminTab('videos',this)"><i class="fa-solid fa-video"></i> Videos</a>
+
+      <div class="sidebar-label" style="margin-top:1rem">Sistema</div>
+      <a href="#" class="sidebar-link" onclick="adminTab('certs',this)"><i class="fa-solid fa-award"></i> Certificados</a>
+      <a href="#" class="sidebar-link" onclick="adminTab('settings',this)"><i class="fa-solid fa-gear"></i> Configuración</a>
+      <a href="index.html" class="sidebar-link"><i class="fa-solid fa-arrow-left"></i> Ver Sitio</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="dash-main">
+
+    <!-- ── OVERVIEW ── -->
+    <div id="atab-overview" class="dash-tab-content active">
+      <div class="admin-header">
+        <div>
+          <h2>Dashboard Admin</h2>
+          <p style="font-size:.85rem;color:var(--grey)">Resumen general de la plataforma</p>
+        </div>
+        <div style="display:flex;gap:.75rem">
+          <button onclick="adminTab('new-course',null)" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Nuevo Curso</button>
+          <button class="btn btn-gold btn-sm" onclick="exportReport()"><i class="fa-solid fa-file-export"></i> Exportar</button>
+        </div>
+      </div>
+
+      <div class="admin-stat-row">
+        <div class="stat-card glass">
+          <div class="stat-card-label"><i class="fa-solid fa-users" style="color:var(--gold)"></i> Estudiantes Totales</div>
+          <div class="stat-card-value">1,542</div>
+          <div class="stat-card-sub">+127 este mes</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-card-label"><i class="fa-solid fa-dollar-sign" style="color:#34d399"></i> Ingresos del Mes</div>
+          <div class="stat-card-value">$4,280</div>
+          <div class="stat-card-sub">+18% vs anterior</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-card-label"><i class="fa-solid fa-book" style="color:#7bb8f8"></i> Cursos Activos</div>
+          <div class="stat-card-value">6</div>
+          <div class="stat-card-sub">2 en desarrollo</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-card-label"><i class="fa-solid fa-award" style="color:var(--gold)"></i> Certificados Emitidos</div>
+          <div class="stat-card-value">328</div>
+          <div class="stat-card-sub">este año</div>
+        </div>
+      </div>
+
+      <div class="admin-grid">
+        <!-- Course popularity -->
+        <div class="glass" style="padding:1.5rem;border-radius:var(--radius)">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem">
+            <i class="fa-solid fa-fire" style="color:#f97316"></i> Cursos más populares
+          </h3>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar-item">
+              <span class="chart-bar-label">IA desde Cero</span>
+              <div class="chart-bar-track"><div class="chart-bar-fill" style="width:85%"></div></div>
+              <span class="chart-bar-val">324</span>
+            </div>
+            <div class="chart-bar-item">
+              <span class="chart-bar-label">Excel y Datos</span>
+              <div class="chart-bar-track"><div class="chart-bar-fill" style="width:72%"></div></div>
+              <span class="chart-bar-val">289</span>
+            </div>
+            <div class="chart-bar-item">
+              <span class="chart-bar-label">ChatGPT Auto.</span>
+              <div class="chart-bar-track"><div class="chart-bar-fill" style="width:65%"></div></div>
+              <span class="chart-bar-val">259</span>
+            </div>
+            <div class="chart-bar-item">
+              <span class="chart-bar-label">Marketing IA</span>
+              <div class="chart-bar-track"><div class="chart-bar-fill" style="width:55%"></div></div>
+              <span class="chart-bar-val">218</span>
+            </div>
+            <div class="chart-bar-item">
+              <span class="chart-bar-label">Cobranza IA</span>
+              <div class="chart-bar-track"><div class="chart-bar-fill" style="width:38%"></div></div>
+              <span class="chart-bar-val">142</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent students -->
+        <div class="glass" style="padding:1.5rem;border-radius:var(--radius)">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem">
+            <i class="fa-solid fa-user-plus" style="color:var(--gold)"></i> Últimos registros
+          </h3>
+          <table class="admin-table">
+            <thead>
+              <tr><th>Nombre</th><th>Curso</th><th>Estado</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>María G.</td><td style="color:var(--grey)">IA desde Cero</td><td><span class="badge badge-green">Activo</span></td></tr>
+              <tr><td>Carlos M.</td><td style="color:var(--grey)">Cobranza IA</td><td><span class="badge badge-green">Activo</span></td></tr>
+              <tr><td>Sofía R.</td><td style="color:var(--grey)">Marketing IA</td><td><span class="badge badge-yellow">Pendiente</span></td></tr>
+              <tr><td>Luis T.</td><td style="color:var(--grey)">Excel</td><td><span class="badge badge-green">Activo</span></td></tr>
+              <tr><td>Ana F.</td><td style="color:var(--grey)">Google Drive</td><td><span class="badge badge-red">Inactivo</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Revenue chart simple -->
+      <div class="glass" style="padding:1.5rem;border-radius:var(--radius);margin-top:1.5rem">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.5rem">
+          <i class="fa-solid fa-chart-line" style="color:var(--gold)"></i> Ingresos por mes (2025)
+        </h3>
+        <div style="display:flex;align-items:flex-end;gap:1rem;height:100px">
+          ${[45,62,55,80,95,72,88,110,98,125,140,165].map((h, i) => {
+            const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:.35rem">
+              <div style="flex:1;width:100%;background:linear-gradient(0deg,var(--blue-glow),var(--gold));border-radius:4px 4px 0 0;height:${h}px;opacity:${0.4 + (i/24)}"></div>
+              <span style="font-size:.65rem;color:var(--grey)">${months[i]}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STUDENTS ── -->
+    <div id="atab-students" class="dash-tab-content">
+      <div class="admin-header">
+        <h2>Estudiantes</h2>
+        <div class="search-bar" style="max-width:280px">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Buscar estudiante..." />
+        </div>
+      </div>
+      <div class="glass" style="padding:1.5rem;border-radius:var(--radius)">
+        <table class="admin-table">
+          <thead>
+            <tr><th>#</th><th>Nombre</th><th>Email</th><th>Cursos</th><th>Progreso</th><th>Registro</th><th>Estado</th><th>Acción</th></tr>
+          </thead>
+          <tbody>
+            ${[
+              ['María González', 'maria@email.com', 2, 78, '12/01/25', 'Activo'],
+              ['Carlos Mendoza', 'carlos@email.com', 1, 100, '15/01/25', 'Activo'],
+              ['Sofía Ramírez',  'sofia@email.com',  3, 45,  '20/01/25', 'Activo'],
+              ['Luis Torres',    'luis@email.com',    1, 60,  '22/01/25', 'Activo'],
+              ['Ana Flores',     'ana@email.com',     2, 25,  '25/01/25', 'Inactivo'],
+              ['Pedro Castro',   'pedro@email.com',   1, 100, '01/02/25', 'Activo'],
+              ['Elena Mora',     'elena@email.com',   4, 55,  '05/02/25', 'Activo'],
+              ['Roberto Paz',    'roberto@email.com', 1, 80,  '10/02/25', 'Pendiente']
+            ].map(([name, email, courses, prog, date, status], i) => `
+              <tr>
+                <td style="color:var(--grey)">${i+1}</td>
+                <td style="font-weight:600">${name}</td>
+                <td style="color:var(--grey)">${email}</td>
+                <td>${courses}</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:.5rem">
+                    <div style="width:60px;height:5px;background:var(--navy-light);border-radius:99px;overflow:hidden">
+                      <div style="height:100%;width:${prog}%;background:${prog===100?'#34d399':'linear-gradient(90deg,var(--blue-glow),var(--gold))'}"></div>
+                    </div>
+                    <span style="font-size:.78rem;color:${prog===100?'#34d399':'var(--grey)'}">${prog}%</span>
+                  </div>
+                </td>
+                <td style="color:var(--grey);font-size:.82rem">${date}</td>
+                <td><span class="badge ${status==='Activo'?'badge-green':status==='Pendiente'?'badge-yellow':'badge-red'}">${status}</span></td>
+                <td>
+                  <button onclick="LIAI.showToast('Ver perfil de ${name}','info')" class="btn btn-outline btn-sm" style="padding:.3rem .65rem;font-size:.75rem">
+                    Ver
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PAYMENTS ── -->
+    <div id="atab-payments" class="dash-tab-content">
+      <div class="admin-header">
+        <h2>Pagos</h2>
+        <button onclick="exportReport()" class="btn btn-gold btn-sm"><i class="fa-solid fa-file-excel"></i> Exportar</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+        <div class="stat-card glass">
+          <div class="stat-card-label"><i class="fa-solid fa-dollar-sign" style="color:#34d399"></i> Ingresos Totales</div>
+          <div class="stat-card-value">$18,450</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-card-label"><i class="fa-solid fa-clock" style="color:var(--gold)"></i> Este Mes</div>
+          <div class="stat-card-value">$4,280</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-card-label"><i class="fa-solid fa-receipt" style="color:#7bb8f8"></i> Transacciones</div>
+          <div class="stat-card-value">392</div>
+        </div>
+      </div>
+      <div class="glass" style="padding:1.5rem;border-radius:var(--radius)">
+        <table class="admin-table">
+          <thead><tr><th>#</th><th>Estudiante</th><th>Curso</th><th>Monto</th><th>Método</th><th>Fecha</th><th>Estado</th></tr></thead>
+          <tbody>
+            ${[
+              ['María González', 'IA desde Cero', '$49', 'Tarjeta', '12/01/25', 'Completado'],
+              ['Carlos Mendoza', 'Cobranza IA',   '$55', 'PayPal',  '15/01/25', 'Completado'],
+              ['Sofía Ramírez',  'Marketing IA',  '$39', 'Tarjeta', '20/01/25', 'Completado'],
+              ['Luis Torres',    'Excel',         '$35', 'Transfer','22/01/25', 'Completado'],
+              ['Ana Flores',     'Google Drive',  '$25', 'Tarjeta', '25/01/25', 'Pendiente'],
+              ['Pedro Castro',   'ChatGPT',       '$45', 'PayPal',  '01/02/25', 'Completado'],
+            ].map(([name, course, amount, method, date, status], i) => `
+              <tr>
+                <td style="color:var(--grey)">${i+1}</td>
+                <td style="font-weight:600">${name}</td>
+                <td style="color:var(--grey);font-size:.82rem">${course}</td>
+                <td style="color:var(--gold);font-weight:700">${amount}</td>
+                <td style="color:var(--grey);font-size:.82rem">${method}</td>
+                <td style="color:var(--grey);font-size:.82rem">${date}</td>
+                <td><span class="badge ${status==='Completado'?'badge-green':'badge-yellow'}">${status}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── COURSES (manage) ── -->
+    <div id="atab-courses" class="dash-tab-content">
+      <div class="admin-header">
+        <h2>Gestión de Cursos</h2>
+        <button onclick="adminTab('new-course',null)" class="btn btn-gold btn-sm"><i class="fa-solid fa-plus"></i> Nuevo</button>
+      </div>
+      <div id="admin-courses-list"></div>
+    </div>
+
+    <!-- ── NEW COURSE ── -->
+    <div id="atab-new-course" class="dash-tab-content">
+      <div class="admin-header"><h2>Crear Nuevo Curso</h2></div>
+      <div class="glass" style="padding:2rem;border-radius:var(--radius)">
+        <form onsubmit="saveCourse(event)">
+          <div class="course-form-grid">
+            <div class="form-group">
+              <label class="form-label">Nombre del curso</label>
+              <input type="text" class="form-input" placeholder="Ej: Python para IA" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Categoría</label>
+              <select class="form-input">
+                <option>IA</option><option>Marketing</option><option>Productividad</option>
+                <option>Datos</option><option>Finanzas</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Precio ($)</label>
+              <input type="number" class="form-input" placeholder="49" min="1" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Precio original ($)</label>
+              <input type="number" class="form-input" placeholder="89" min="1" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Duración</label>
+              <input type="text" class="form-input" placeholder="Ej: 10 horas" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nivel</label>
+              <select class="form-input">
+                <option>Principiante</option><option>Intermedio</option><option>Avanzado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">N° de módulos</label>
+              <input type="number" class="form-input" placeholder="8" min="1" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ícono (emoji)</label>
+              <input type="text" class="form-input" placeholder="🤖" maxlength="4" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Descripción del curso</label>
+            <textarea class="form-input" rows="3" placeholder="Describe el contenido y beneficios del curso..." style="resize:vertical"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">URL del video principal</label>
+            <input type="url" class="form-input" placeholder="https://youtube.com/embed/..." />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Imagen del curso</label>
+            <div class="upload-zone" onclick="document.getElementById('img-upload').click()">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <p>Clic para subir imagen o arrastra aquí</p>
+              <p style="font-size:.75rem;margin-top:.25rem">PNG, JPG · máx. 2MB</p>
+            </div>
+            <input type="file" id="img-upload" accept="image/*" style="display:none" onchange="previewImg(this)" />
+            <img id="img-preview" style="display:none;max-height:120px;margin-top:.75rem;border-radius:var(--radius-sm)" />
+          </div>
+
+          <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+            <button type="button" onclick="adminTab('courses',null)" class="btn btn-outline">Cancelar</button>
+            <button type="submit" class="btn btn-gold"><i class="fa-solid fa-floppy-disk"></i> Guardar Curso</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── VIDEOS ── -->
+    <div id="atab-videos" class="dash-tab-content">
+      <div class="admin-header"><h2>Gestión de Videos</h2></div>
+      <div class="glass" style="padding:2rem;border-radius:var(--radius);margin-bottom:1.5rem">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem">Subir nuevo video</h3>
+        <div class="form-group">
+          <label class="form-label">Tipo de video</label>
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.9rem">
+              <input type="radio" name="vtype" value="youtube" checked style="accent-color:var(--gold)"> YouTube
+            </label>
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.9rem">
+              <input type="radio" name="vtype" value="vimeo" style="accent-color:var(--gold)"> Vimeo
+            </label>
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.9rem">
+              <input type="radio" name="vtype" value="mp4" style="accent-color:var(--gold)"> MP4 / Archivo
+            </label>
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.9rem">
+              <input type="radio" name="vtype" value="heygen" style="accent-color:var(--gold)"> HeyGen
+            </label>
+          </div>
+        </div>
+        <div class="course-form-grid">
+          <div class="form-group">
+            <label class="form-label">Título del módulo</label>
+            <input type="text" class="form-input" placeholder="Módulo 1: Introducción" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Curso al que pertenece</label>
+            <select class="form-input">
+              <option>IA desde Cero</option>
+              <option>Marketing Digital con IA</option>
+              <option>ChatGPT Automatización</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">URL del video o ID</label>
+          <input type="text" class="form-input" placeholder="https://youtube.com/embed/... o ID del video" />
+        </div>
+        <div class="upload-zone" style="margin-top:.5rem" onclick="document.getElementById('video-upload').click()">
+          <i class="fa-solid fa-film"></i>
+          <p>O carga un archivo de video directamente</p>
+          <p style="font-size:.75rem;margin-top:.25rem">MP4, WebM · máx. 500MB</p>
+        </div>
+        <input type="file" id="video-upload" accept="video/*" style="display:none" />
+        <div style="text-align:right;margin-top:1rem">
+          <button class="btn btn-gold" onclick="LIAI.showToast('Video guardado correctamente','success')">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Subir Video
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CERTS (admin) ── -->
+    <div id="atab-certs" class="dash-tab-content">
+      <div class="admin-header"><h2>Certificados Emitidos</h2></div>
+      <div class="glass" style="padding:1.5rem;border-radius:var(--radius)">
+        <table class="admin-table">
+          <thead><tr><th>#</th><th>Estudiante</th><th>Curso</th><th>Fecha</th><th>Código</th><th>Acción</th></tr></thead>
+          <tbody>
+            ${[
+              ['Carlos Mendoza','Cobranza IA','15/01/25','LIAI-A1B2C3D4'],
+              ['Pedro Castro','ChatGPT Auto.','01/02/25','LIAI-E5F6G7H8'],
+              ['María González','Excel','22/02/25','LIAI-I9J0K1L2'],
+            ].map(([name,course,date,code],i)=>`
+              <tr>
+                <td style="color:var(--grey)">${i+1}</td>
+                <td style="font-weight:600">${name}</td>
+                <td style="color:var(--grey);font-size:.82rem">${course}</td>
+                <td style="color:var(--grey);font-size:.82rem">${date}</td>
+                <td style="font-size:.75rem;font-family:monospace;color:var(--gold)">${code}</td>
+                <td>
+                  <button class="btn btn-gold btn-sm" style="padding:.3rem .65rem;font-size:.75rem"
+                    onclick="LIAI.showToast('Descargando certificado...','info')">
+                    <i class="fa-solid fa-download"></i>
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div id="atab-settings" class="dash-tab-content">
+      <div class="admin-header"><h2>Configuración</h2></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <div class="glass" style="padding:2rem;border-radius:var(--radius)">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.5rem"><i class="fa-solid fa-globe" style="color:var(--gold)"></i> Información del Sitio</h3>
+          <div class="form-group">
+            <label class="form-label">Nombre de la plataforma</label>
+            <input type="text" class="form-input" value="ElhyAI" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email de contacto</label>
+            <input type="email" class="form-input" value="info@cursos.elhyai.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input type="tel" class="form-input" value="+593 99 999 9999" />
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="LIAI.showToast('Configuración guardada','success')">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar
+          </button>
+        </div>
+        <div class="glass" style="padding:2rem;border-radius:var(--radius)">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.5rem"><i class="fa-solid fa-credit-card" style="color:var(--gold)"></i> Pagos</h3>
+          <div class="form-group">
+            <label class="form-label">PayPal Client ID</label>
+            <input type="text" class="form-input" placeholder="AXxxxxxxxx..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stripe Public Key</label>
+            <input type="text" class="form-input" placeholder="pk_live_..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">PayPhone Token</label>
+            <input type="text" class="form-input" placeholder="Token de producción" />
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="LIAI.showToast('Pasarelas de pago actualizadas','success')">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="notif-toast"></div>
+
+<script src="app.js"></script>
+<script>
+  function adminTab(id, el) {
+    document.querySelectorAll('.dash-tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById(`atab-${id}`)?.classList.add('active');
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    if (el) el.classList.add('active');
+
+    if (id === 'courses') renderAdminCourses();
+  }
+
+  function renderAdminCourses() {
+    const list = document.getElementById('admin-courses-list');
+    if (!list) return;
+    list.innerHTML = `
+      <div class="glass" style="padding:1.5rem;border-radius:var(--radius)">
+        <table class="admin-table">
+          <thead><tr><th>Icono</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Módulos</th><th>Estudiantes</th><th>Rating</th><th>Acción</th></tr></thead>
+          <tbody>
+            ${LIAI.COURSES_DATA.map(c => `
+              <tr>
+                <td style="font-size:1.5rem">${c.icon}</td>
+                <td style="font-weight:600;font-size:.88rem">${c.title}</td>
+                <td><span class="badge badge-yellow">${c.category}</span></td>
+                <td style="color:var(--gold);font-weight:700">$${c.price}</td>
+                <td style="color:var(--grey)">${c.modules}</td>
+                <td style="color:var(--grey)">${c.students}</td>
+                <td style="color:var(--gold)">★ ${c.rating}</td>
+                <td>
+                  <div style="display:flex;gap:.4rem">
+                    <button class="btn btn-outline btn-sm" style="padding:.3rem .55rem;font-size:.75rem" onclick="LIAI.showToast('Editando curso...','info')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn btn-sm" style="padding:.3rem .55rem;font-size:.75rem;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.2);border-radius:99px" onclick="LIAI.showToast('Curso eliminado','error')"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function saveCourse(e) {
+    e.preventDefault();
+    LIAI.showToast('¡Curso creado exitosamente!', 'success');
+    setTimeout(() => adminTab('courses', null), 1200);
+  }
+
+  function previewImg(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('img-preview');
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function exportReport() {
+    LIAI.showToast('Generando reporte... descarga en segundos', 'info');
+  }
+</script>
+</body>
+</html>
