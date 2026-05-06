@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Validar Certificado – ElhyAI</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    .validate-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6rem 1.5rem 4rem;
+      background: var(--navy);
+      position: relative;
+      overflow: hidden;
+    }
+    .validate-page::before {
+      content: '';
+      position: fixed;
+      top: -150px; left: 50%;
+      transform: translateX(-50%);
+      width: 1000px; height: 700px;
+      background: radial-gradient(ellipse, rgba(32,96,192,0.1) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* Grid background */
+    .grid-bg {
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(32,96,192,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(32,96,192,0.04) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+    .validate-logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+    .validate-logo span { color: var(--gold); }
+    .validate-logo small {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: var(--grey);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+
+    /* ── Main card ──────────────────────────────────── */
+    .validate-card {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 620px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+    }
+
+    .card-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .card-header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+    .card-header p { color: var(--grey-light); font-size: 0.88rem; }
+
+    /* ── Search input ───────────────────────────────── */
+    .search-group {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .code-input-wrap {
+      flex: 1;
+      position: relative;
+    }
+    .code-input-wrap i {
+      position: absolute;
+      left: 1rem; top: 50%;
+      transform: translateY(-50%);
+      color: var(--grey);
+    }
+    .code-input {
+      width: 100%;
+      padding: 0.85rem 1rem 0.85rem 2.5rem;
+      background: rgba(10,22,40,0.8);
+      border: 1.5px solid rgba(201,168,76,0.15);
+      border-radius: 10px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: border-color 0.2s;
+    }
+    .code-input::placeholder { text-transform: none; letter-spacing: normal; color: var(--grey); }
+    .code-input:focus { outline: none; border-color: var(--gold); }
+    .btn-validate {
+      padding: 0.85rem 1.5rem;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+      border-radius: 10px;
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-validate:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-validate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .or-text {
+      text-align: center;
+      color: var(--grey);
+      font-size: 0.8rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    .or-text::before, .or-text::after {
+      content: ''; position: absolute;
+      top: 50%; width: 42%; height: 1px;
+      background: rgba(255,255,255,0.07);
+    }
+    .or-text::before { left: 0; }
+    .or-text::after  { right: 0; }
+
+    /* ── QR Scanner (UI only) ─────────────────────── */
+    .qr-zone {
+      border: 2px dashed rgba(201,168,76,0.2);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.3s, background 0.3s;
+      margin-bottom: 1.5rem;
+    }
+    .qr-zone:hover { border-color: var(--gold); background: rgba(201,168,76,0.03); }
+    .qr-zone i { font-size: 2rem; color: var(--grey); margin-bottom: 0.75rem; display: block; }
+    .qr-zone p { color: var(--grey-light); font-size: 0.85rem; }
+    .qr-zone small { color: var(--grey); font-size: 0.75rem; }
+
+    /* ── Results ────────────────────────────────────── */
+    #result-area { display: none; }
+
+    /* Valid certificate */
+    .cert-result {
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .cert-result-header {
+      background: linear-gradient(135deg, rgba(39,174,96,0.15), rgba(39,174,96,0.05));
+      border: 1px solid rgba(39,174,96,0.25);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .cert-status-icon {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+    .cert-status-icon.valid   { background: rgba(39,174,96,0.2); color: #27ae60; border: 1.5px solid rgba(39,174,96,0.3); }
+    .cert-status-icon.invalid { background: rgba(231,76,60,0.2);  color: #e74c3c; border: 1.5px solid rgba(231,76,60,0.3); }
+
+    .cert-status-text h3 { font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; }
+    .cert-status-text p  { font-size: 0.8rem; color: var(--grey-light); margin-top: 0.2rem; }
+    .cert-status-text.valid   h3 { color: #27ae60; }
+    .cert-status-text.invalid h3 { color: #e74c3c; }
+
+    .cert-result-body {
+      background: rgba(10,22,40,0.5);
+      border: 1px solid rgba(201,168,76,0.1);
+      border-top: none;
+      padding: 1.5rem;
+    }
+    .cert-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .cert-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .cert-detail-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--grey);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .cert-detail-value {
+      font-size: 0.9rem;
+      color: var(--white);
+      font-weight: 500;
+    }
+    .cert-detail-value.highlight { color: var(--gold); font-family: 'Syne', sans-serif; }
+
+    .cert-badge-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+    .cert-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 99px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .badge-verified  { background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid rgba(39,174,96,0.25); }
+    .badge-authentic { background: rgba(32,96,192,0.15); color: #5dade2;  border: 1px solid rgba(32,96,192,0.25); }
+    .badge-active    { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid rgba(201,168,76,0.25); }
+
+    .share-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .btn-share {
+      flex: 1;
+      min-width: 130px;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+      transition: all 0.25s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-share.linkedin { background: rgba(0,119,181,0.15); border: 1px solid rgba(0,119,181,0.3); color: #5dade2; }
+    .btn-share.linkedin:hover { background: rgba(0,119,181,0.25); }
+    .btn-share.copy     { background: rgba(201,168,76,0.1);  border: 1px solid rgba(201,168,76,0.2);  color: var(--gold); }
+    .btn-share.copy:hover { background: rgba(201,168,76,0.18); }
+    .btn-share.pdf      { background: rgba(231,76,60,0.1);   border: 1px solid rgba(231,76,60,0.2);   color: #e74c3c; }
+    .btn-share.pdf:hover { background: rgba(231,76,60,0.18); }
+
+    /* Invalid result */
+    .invalid-result {
+      background: rgba(231,76,60,0.07);
+      border: 1px solid rgba(231,76,60,0.2);
+      border-radius: 14px;
+      padding: 1.5rem;
+      display: flex;
+      gap: 1rem;
+    }
+    .invalid-result i { font-size: 1.5rem; color: #e74c3c; flex-shrink: 0; margin-top: 0.1rem; }
+    .invalid-result h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: #e74c3c; margin-bottom: 0.4rem; }
+    .invalid-result p  { font-size: 0.83rem; color: var(--grey-light); line-height: 1.55; }
+
+    /* Loading state */
+    .validating-state {
+      text-align: center;
+      padding: 2rem 0;
+    }
+    .validating-spinner {
+      width: 50px; height: 50px;
+      border: 3px solid rgba(201,168,76,0.15);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Stats section ──────────────────────────────── */
+    .platform-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .stat-box {
+      background: rgba(10,22,40,0.6);
+      border: 1px solid rgba(201,168,76,0.08);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .stat-val { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--gold); }
+    .stat-lbl { font-size: 0.7rem; color: var(--grey); margin-top: 0.2rem; }
+
+    /* ── Trust badges ───────────────────────────────── */
+    .trust-row {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: var(--grey);
+    }
+    .trust-item i { color: var(--gold); }
+
+    /* ── Recent verifications ─────────────────────── */
+    .recent-section {
+      max-width: 620px;
+      width: 100%;
+      margin-top: 2rem;
+      position: relative;
+      z-index: 10;
+    }
+    .recent-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--grey);
+      margin-bottom: 0.75rem;
+    }
+    .recent-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .recent-item {
+      background: rgba(10,22,40,0.5);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+    }
+    .recent-item i { color: #27ae60; font-size: 0.7rem; }
+    .recent-item-code { color: var(--gold); font-family: monospace; font-size: 0.78rem; }
+    .recent-item-name { color: var(--grey-light); flex: 1; }
+    .recent-item-time { color: var(--grey); font-size: 0.72rem; }
+
+    @media (max-width: 600px) {
+      .cert-detail-grid { grid-template-columns: 1fr; }
+      .platform-stats   { grid-template-columns: 1fr 1fr; }
+      .share-row        { flex-direction: column; }
+      .search-group     { flex-direction: column; }
+      .btn-validate     { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">Elhy<span> Consultores</span></a>
+    <ul class="nav-menu" id="nav-menu">
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="cursos.html">Cursos</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="btn-ghost" onclick="location.href='login.html'">Iniciar Sesión</button>
+      <button class="nav-toggle" id="nav-toggle"><i class="fas fa-bars"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<main class="validate-page">
+
+  <!-- Logo -->
+  <div class="validate-logo">
+    Elhy<span> Consultores</span>
+    <small>Sistema de Verificación de Certificados</small>
+  </div>
+
+  <!-- Main card -->
+  <div class="validate-card">
+    <div class="card-header">
+      <h1><i class="fas fa-certificate" style="color:var(--gold);margin-right:.5rem;font-size:1.2rem"></i>Validar Certificado</h1>
+      <p>Verifica la autenticidad de un certificado emitido por ElhyAI</p>
+    </div>
+
+    <!-- Search by code -->
+    <div class="search-group">
+      <div class="code-input-wrap">
+        <i class="fas fa-hashtag"></i>
+        <input type="text" class="code-input" id="cert-code" placeholder="Ej: ELHYAI-A1B2C3D4E5F6" maxlength="20" />
+      </div>
+      <button class="btn-validate" id="validate-btn" onclick="validateCert()">
+        <i class="fas fa-search"></i> Verificar
+      </button>
+    </div>
+
+    <div class="or-text">o escanea el código QR del certificado</div>
+
+    <!-- QR zone -->
+    <div class="qr-zone" onclick="showQRInfo()">
+      <i class="fas fa-qrcode"></i>
+      <p>Haz clic aquí para escanear QR</p>
+      <small>Funciona con la cámara de tu dispositivo</small>
+    </div>
+
+    <!-- Result area -->
+    <div id="result-area"></div>
+
+    <!-- Platform stats -->
+    <div class="platform-stats">
+      <div class="stat-box">
+        <div class="stat-val" id="s-certs">1,247</div>
+        <div class="stat-lbl">Certificados emitidos</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="s-verify">856</div>
+        <div class="stat-lbl">Verificaciones</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val">100%</div>
+        <div class="stat-lbl">Autenticidad</div>
+      </div>
+    </div>
+
+    <!-- Trust badges -->
+    <div class="trust-row">
+      <div class="trust-item"><i class="fas fa-lock"></i> Verificación segura</div>
+      <div class="trust-item"><i class="fas fa-shield-alt"></i> Anti-falsificación</div>
+      <div class="trust-item"><i class="fas fa-globe"></i> Validez internacional</div>
+    </div>
+  </div>
+
+  <!-- Recent verifications -->
+  <div class="recent-section">
+    <p class="recent-title"><i class="fas fa-history" style="margin-right:.4rem"></i>Verificaciones recientes</p>
+    <div class="recent-list" id="recent-list">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer" style="margin-top:4rem">
+  <div class="footer-bottom">
+    <p>&copy; 2026 ElhyAI · <a href="index.html" style="color:var(--gold)">Inicio</a> · <a href="cursos.html" style="color:var(--gold)">Cursos</a></p>
+  </div>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase.js"></script>
+<script src="app.js"></script>
+<script>
+
+/* ── Demo certificate database ─────────────────────── */
+const DEMO_CERTS = {
+  'ELHYAI-A1B2C3D4E5F6': {
+    studentName: 'Carlos Andrés Vásquez',
+    course: 'Inteligencia Artificial desde Cero',
+    issueDate: '15 de Marzo, 2026',
+    expiryDate: 'Sin vencimiento',
+    credentialId: 'ELHYAI-A1B2C3D4E5F6',
+    instructor: 'Ing. Luis Ibarra',
+    platform: 'ElhyAI',
+    modules: 10,
+    duration: '18 horas',
+    grade: '95/100',
+    status: 'valid'
+  },
+  'ELHYAI-X9Y8Z7W6V5U4': {
+    studentName: 'María Fernanda López',
+    course: 'Marketing Digital con IA',
+    issueDate: '22 de Febrero, 2026',
+    expiryDate: 'Sin vencimiento',
+    credentialId: 'ELHYAI-X9Y8Z7W6V5U4',
+    instructor: 'Ing. Luis Ibarra',
+    platform: 'ElhyAI',
+    modules: 8,
+    duration: '14 horas',
+    grade: '88/100',
+    status: 'valid'
+  },
+  'ELHYAI-DEMO123456': {
+    studentName: 'Estudiante Demo',
+    course: 'Cobranza Inteligente con IA',
+    issueDate: '1 de Enero, 2026',
+    expiryDate: 'Sin vencimiento',
+    credentialId: 'ELHYAI-DEMO123456',
+    instructor: 'Ing. Luis Ibarra',
+    platform: 'ElhyAI',
+    modules: 12,
+    duration: '22 horas',
+    grade: '92/100',
+    status: 'valid'
+  }
+};
+
+const RECENT_VERIFICATIONS = [
+  { code: 'ELHYAI-A1B2C3D4E5F6', name: 'Carlos Andrés Vásquez', time: 'hace 2 minutos' },
+  { code: 'ELHYAI-X9Y8Z7W6V5U4', name: 'María Fernanda López',  time: 'hace 18 minutos' },
+  { code: 'ELHYAI-P3Q2R1S0T9U8', name: 'Andrés Morales Torres', time: 'hace 1 hora' },
+  { code: 'ELHYAI-DEMO123456',   name: 'Estudiante Demo',       time: 'hace 3 horas' },
+];
+
+/* ── URL param auto-validate ─────────────────────── */
+function getURLCode() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('code') || '';
+}
+
+/* ── Validate ────────────────────────────────────── */
+function validateCert() {
+  const raw  = document.getElementById('cert-code').value.trim().toUpperCase();
+  const code = raw.startsWith('ELHYAI-') ? raw : 'ELHYAI-' + raw;
+  if (!code || code === 'ELHYAI-') {
+    showError('Ingresa un código de certificado válido');
+    return;
+  }
+
+  const btn = document.getElementById('validate-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando…';
+
+  const resultArea = document.getElementById('result-area');
+  resultArea.style.display = 'block';
+  resultArea.innerHTML = `
+    <div class="validating-state">
+      <div class="validating-spinner"></div>
+      <p style="color:var(--grey-light);font-size:.88rem">Consultando base de datos segura…</p>
+    </div>
+  `;
+
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-search"></i> Verificar';
+
+    const cert = DEMO_CERTS[code];
+    if (cert) showValid(cert);
+    else showInvalid(code);
+
+    // Add to recent
+    addToRecent(code, cert ? cert.studentName : 'Desconocido');
+  }, 1800);
+}
+
+function showValid(cert) {
+  document.getElementById('result-area').innerHTML = `
+    <div class="cert-result" style="margin-bottom:0">
+      <div class="cert-result-header">
+        <div class="cert-status-icon valid"><i class="fas fa-check"></i></div>
+        <div class="cert-status-text valid">
+          <h3>✅ Certificado Auténtico</h3>
+          <p>Este certificado fue emitido por ElhyAI y es completamente válido</p>
+        </div>
+      </div>
+      <div class="cert-result-body">
+        <div class="cert-badge-row">
+          <span class="cert-badge badge-verified"><i class="fas fa-check-circle"></i> Verificado</span>
+          <span class="cert-badge badge-authentic"><i class="fas fa-shield-alt"></i> Auténtico</span>
+          <span class="cert-badge badge-active"><i class="fas fa-star"></i> Vigente</span>
+        </div>
+        <div class="cert-detail-grid">
+          <div class="cert-detail">
+            <span class="cert-detail-label">Estudiante</span>
+            <span class="cert-detail-value highlight">${cert.studentName}</span>
+          </div>
+          <div class="cert-detail">
+            <span class="cert-detail-label">Curso completado</span>
+            <span class="cert-detail-value">${cert.course}</span>
+          </div>
+          <div class="cert-detail">
+            <span class="cert-detail-label">Fecha de emisión</span>
+            <span class="cert-detail-value">${cert.issueDate}</span>
+          </div>
+          <div class="cert-detail">
+            <span class="cert-detail-label">Calificación</span>
+            <span class="cert-detail-value highlight">${cert.grade}</span>
+          </div>
+          <div class="cert-detail">
+            <span class="cert-detail-label">Instructor</span>
+            <span class="cert-detail-value">${cert.instructor}</span>
+          </div>
+          <div class="cert-detail">
+            <span class="cert-detail-label">Duración</span>
+            <span class="cert-detail-value">${cert.duration} · ${cert.modules} módulos</span>
+          </div>
+          <div class="cert-detail">
+            <span class="cert-detail-label">ID de Credencial</span>
+            <span class="cert-detail-value" style="font-family:monospace;font-size:.8rem">${cert.credentialId}</span>
+          </div>
+          <div class="cert-detail">
+            <span class="cert-detail-label">Vencimiento</span>
+            <span class="cert-detail-value">${cert.expiryDate}</span>
+          </div>
+        </div>
+        <div class="share-row">
+          <button class="btn-share linkedin" onclick="shareLinkedIn('${cert.credentialId}','${cert.course}')">
+            <i class="fab fa-linkedin"></i> Compartir en LinkedIn
+          </button>
+          <button class="btn-share copy" onclick="copyLink('${cert.credentialId}')">
+            <i class="fas fa-link"></i> Copiar enlace
+          </button>
+          <button class="btn-share pdf" onclick="alert('Descarga del PDF disponible en tu Dashboard')">
+            <i class="fas fa-file-pdf"></i> Descargar PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function showInvalid(code) {
+  document.getElementById('result-area').innerHTML = `
+    <div class="invalid-result">
+      <i class="fas fa-times-circle"></i>
+      <div>
+        <h3>Certificado no encontrado</h3>
+        <p>El código <strong style="font-family:monospace">${code}</strong> no corresponde a ningún certificado en nuestra base de datos. Puede que el código sea incorrecto o el certificado no fue emitido por ElhyAI.</p>
+        <br>
+        <p style="font-size:.78rem">¿Crees que es un error? Contáctanos en <a href="mailto:info@elhyai.com" style="color:var(--gold)">info@elhyai.com</a> o vía WhatsApp.</p>
+      </div>
+    </div>
+  `;
+}
+
+function showError(msg) {
+  const input = document.getElementById('cert-code');
+  input.style.borderColor = '#e74c3c';
+  setTimeout(() => input.style.borderColor = '', 2000);
+  document.getElementById('result-area').style.display = 'none';
+}
+
+/* ── Actions ─────────────────────────────────────── */
+function shareLinkedIn(code, course) {
+  const url = encodeURIComponent(`https://cursos.elhyai.com/validar?code=${code}`);
+  const title = encodeURIComponent(`Completé el curso: ${course} en ElhyAI`);
+  window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&title=${title}`, '_blank');
+}
+
+function copyLink(code) {
+  const url = `https://cursos.elhyai.com/validar?code=${code}`;
+  navigator.clipboard?.writeText(url).then(() => {
+    showToast('Enlace copiado al portapapeles');
+  }).catch(() => {
+    prompt('Copia este enlace:', url);
+  });
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--navy-light);border:1px solid var(--gold);color:var(--white);padding:.75rem 1.5rem;border-radius:99px;font-size:.85rem;z-index:9999;font-family:'DM Sans',sans-serif;`;
+  t.textContent = '✅ ' + msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function showQRInfo() {
+  alert('📱 Para escanear el QR:\n\n1. Abre la cámara de tu celular\n2. Apunta al código QR del certificado\n3. Toca el enlace que aparece\n4. Serás redirigido automáticamente a esta página de validación');
+}
+
+/* ── Recent verifications ─────────────────────────── */
+function renderRecent() {
+  const list = document.getElementById('recent-list');
+  const stored = JSON.parse(localStorage.getItem('liai_verifications') || '[]');
+  const all = [...stored, ...RECENT_VERIFICATIONS].slice(0, 5);
+  list.innerHTML = all.map(v => `
+    <div class="recent-item">
+      <i class="fas fa-check-circle"></i>
+      <span class="recent-item-code">${v.code}</span>
+      <span class="recent-item-name">${v.name}</span>
+      <span class="recent-item-time">${v.time}</span>
+    </div>
+  `).join('');
+}
+
+function addToRecent(code, name) {
+  const stored = JSON.parse(localStorage.getItem('liai_verifications') || '[]');
+  stored.unshift({ code, name, time: 'ahora mismo' });
+  localStorage.setItem('liai_verifications', JSON.stringify(stored.slice(0, 10)));
+  renderRecent();
+}
+
+/* ── Counter animation ─────────────────────────────── */
+function animateCounter(el, target, duration = 1200) {
+  let start = 0;
+  const step = target / (duration / 16);
+  const timer = setInterval(() => {
+    start += step;
+    if (start >= target) { el.textContent = target.toLocaleString('es'); clearInterval(timer); }
+    else el.textContent = Math.floor(start).toLocaleString('es');
+  }, 16);
+}
+
+/* ── Init ─────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  window.LIAI?.initNavbar?.();
+  renderRecent();
+  animateCounter(document.getElementById('s-certs'),  1247);
+  animateCounter(document.getElementById('s-verify'),  856);
+
+  // Auto-validate from URL
+  const urlCode = getURLCode();
+  if (urlCode) {
+    document.getElementById('cert-code').value = urlCode;
+    setTimeout(validateCert, 500);
+  }
+
+  // Enter key
+  document.getElementById('cert-code').addEventListener('keydown', e => {
+    if (e.key === 'Enter') validateCert();
+  });
+});
+</script>
+</body>
+</html>
