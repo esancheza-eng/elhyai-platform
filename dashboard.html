@@ -215,6 +215,7 @@
     <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
   </div>
   <button class="topbar-btn" onclick="location.href='index.html'"><i class="fas fa-home"></i> Inicio</button>
+  <button class="topbar-btn" style="border-color:rgba(220,50,50,.5);color:#ff8080" onclick="confirmLogout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
 </header>
 
 <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
@@ -1056,6 +1057,12 @@ function toggleSidebar() {
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebar-backdrop').classList.remove('show');
+}
+
+function confirmLogout() {
+  if (confirm('¿Cerrar sesión de ElhyAI?')) {
+    ElhyFirebase.logoutUser();
+  }
 }
 
 /* ── Init ── */
