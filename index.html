@@ -507,6 +507,19 @@ ElhyFirebase.onAuthStateChanged(user=>{
     const rb=document.querySelector('.btn-nr');
     if(lb)lb.outerHTML=`<span style="font-size:.85rem;color:var(--primary);font-weight:500">Hola, ${user.displayName?.split(' ')[0]||'Estudiante'}</span>`;
     if(rb){rb.textContent='Mi Panel';rb.onclick=()=>location.href='dashboard.html';}
+    // Add logout button
+    const nav = document.querySelector('.nav-inner');
+    const logoutBtn = document.createElement('button');
+    logoutBtn.className = 'btn-nl';
+    logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Salir';
+    logoutBtn.style.borderColor = '#dc2626';
+    logoutBtn.style.color = '#dc2626';
+    logoutBtn.onclick = async () => {
+      if (confirm('¿Cerrar sesión?')) {
+        await ElhyFirebase.logoutUser();
+      }
+    };
+    nav.appendChild(logoutBtn);
   }
 });
 
