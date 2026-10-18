@@ -3,7 +3,7 @@
    Sistema de diseño premium — Azul Oscuro · Dorado · Blanco
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap');
 
 /* ─── Variables de diseño ─────────────────────────────────── */
 :root {
@@ -36,7 +36,7 @@ html {
 }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background: var(--navy);
   color: var(--white);
   line-height: 1.65;
@@ -44,7 +44,7 @@ body {
 }
 
 h1, h2, h3, h4, h5 {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.15;
 }
 
@@ -68,7 +68,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 #loading-screen.hidden { opacity: 0; visibility: hidden; }
 
 .loader-logo {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 2rem;
   font-weight: 800;
   color: var(--gold);
@@ -227,7 +227,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 }
 
 .nav-logo {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: 1px;
@@ -355,7 +355,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 }
 .stat-item { }
 .stat-number {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 1.75rem;
   font-weight: 800;
   color: var(--gold);
@@ -503,7 +503,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 }
 
 .about-card-float .metric {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 2.5rem;
   font-weight: 800;
   color: var(--gold);
@@ -616,7 +616,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 }
 
 .course-thumb-title {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--white);
@@ -644,7 +644,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   border-top: 1px solid var(--glass-border);
 }
 .course-price {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--gold);
@@ -654,7 +654,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   font-size: 0.72rem;
   font-weight: 400;
   color: var(--grey);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   text-decoration: line-through;
 }
 
@@ -782,7 +782,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   border-radius: var(--radius);
 }
 .stat-card-label { font-size: 0.8rem; color: var(--grey); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
-.stat-card-value { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--white); }
+.stat-card-value { font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 2rem; font-weight: 800; color: var(--white); }
 .stat-card-sub { font-size: 0.78rem; color: var(--gold); margin-top: 0.25rem; }
 
 /* Progress bar */
@@ -858,7 +858,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   background: linear-gradient(135deg, #050d1a 0%, #0a1628 50%, #050d1a 100%);
   position: relative;
   overflow: hidden;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: #f0f4ff;
   display: none; /* shown only during PDF generation */
 }
@@ -940,7 +940,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   top: 235px; left: 50%;
   transform: translateX(-50%);
   text-align: center;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 0.95rem;
   color: var(--grey-light);
   white-space: nowrap;
@@ -963,7 +963,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   top: 340px; left: 50%;
   transform: translateX(-50%);
   text-align: center;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 0.88rem;
   color: var(--grey-light);
   white-space: nowrap;
@@ -996,7 +996,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   background: var(--grey);
   margin: 0 auto 6px;
 }
-.cert-sign p { font-size: 0.72rem; color: var(--grey-light); font-family: 'DM Sans', sans-serif; }
+.cert-sign p { font-size: 0.72rem; color: var(--grey-light); font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 .cert-sign strong { display: block; font-size: 0.8rem; font-weight: 600; color: var(--white); }
 
 #cert-qr {
@@ -1009,7 +1009,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .cert-date-badge {
   text-align: center;
 }
-.cert-date-badge p { font-size: 0.72rem; color: var(--grey); font-family: 'DM Sans', sans-serif; }
+.cert-date-badge p { font-size: 0.72rem; color: var(--grey); font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 .cert-date-badge strong { font-size: 0.9rem; color: var(--white); }
 
 /* ─── AUTH FORMS ──────────────────────────────────────────── */
@@ -1032,7 +1032,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 }
 
 .auth-header { text-align: center; margin-bottom: 2rem; }
-.auth-header .logo { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--gold); margin-bottom: 1rem; }
+.auth-header .logo { font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--gold); margin-bottom: 1rem; }
 .auth-header h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.35rem; }
 .auth-header p { font-size: 0.88rem; color: var(--grey); }
 
@@ -1228,7 +1228,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   gap: 3rem;
   margin-bottom: 3rem;
 }
-.footer-brand .logo { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--white); margin-bottom: 1rem; }
+.footer-brand .logo { font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--white); margin-bottom: 1rem; }
 .footer-brand .logo span { color: var(--gold); }
 .footer-brand p { font-size: 0.88rem; color: var(--grey); line-height: 1.7; max-width: 280px; }
 .footer-socials { display: flex; gap: 0.75rem; margin-top: 1.25rem; }

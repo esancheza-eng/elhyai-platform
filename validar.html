@@ -7,7 +7,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="style.css" />
 
@@ -45,7 +45,7 @@
 
     /* ── Header ─────────────────────────────────────── */
     .validate-logo {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-size: 1.4rem;
       font-weight: 800;
       color: var(--white);
@@ -82,7 +82,7 @@
       margin-bottom: 2rem;
     }
     .card-header h1 {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-size: 1.6rem;
       font-weight: 800;
       margin-bottom: 0.5rem;
@@ -112,7 +112,7 @@
       border: 1.5px solid rgba(201,168,76,0.15);
       border-radius: 10px;
       color: var(--white);
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-size: 0.9rem;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -191,7 +191,7 @@
     .cert-status-icon.valid   { background: rgba(39,174,96,0.2); color: #27ae60; border: 1.5px solid rgba(39,174,96,0.3); }
     .cert-status-icon.invalid { background: rgba(231,76,60,0.2);  color: #e74c3c; border: 1.5px solid rgba(231,76,60,0.3); }
 
-    .cert-status-text h3 { font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; }
+    .cert-status-text h3 { font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.05rem; font-weight: 700; }
     .cert-status-text p  { font-size: 0.8rem; color: var(--grey-light); margin-top: 0.2rem; }
     .cert-status-text.valid   h3 { color: #27ae60; }
     .cert-status-text.invalid h3 { color: #e74c3c; }
@@ -225,7 +225,7 @@
       color: var(--white);
       font-weight: 500;
     }
-    .cert-detail-value.highlight { color: var(--gold); font-family: 'Syne', sans-serif; }
+    .cert-detail-value.highlight { color: var(--gold); font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 
     .cert-badge-row {
       display: flex;
@@ -261,7 +261,7 @@
       cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 0.4rem;
       transition: all 0.25s;
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
     .btn-share.linkedin { background: rgba(0,119,181,0.15); border: 1px solid rgba(0,119,181,0.3); color: #5dade2; }
     .btn-share.linkedin:hover { background: rgba(0,119,181,0.25); }
@@ -280,7 +280,7 @@
       gap: 1rem;
     }
     .invalid-result i { font-size: 1.5rem; color: #e74c3c; flex-shrink: 0; margin-top: 0.1rem; }
-    .invalid-result h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: #e74c3c; margin-bottom: 0.4rem; }
+    .invalid-result h3 { font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1rem; font-weight: 700; color: #e74c3c; margin-bottom: 0.4rem; }
     .invalid-result p  { font-size: 0.83rem; color: var(--grey-light); line-height: 1.55; }
 
     /* Loading state */
@@ -312,7 +312,7 @@
       padding: 1rem;
       text-align: center;
     }
-    .stat-val { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--gold); }
+    .stat-val { font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--gold); }
     .stat-lbl { font-size: 0.7rem; color: var(--grey); margin-top: 0.2rem; }
 
     /* ── Trust badges ───────────────────────────────── */
@@ -343,7 +343,7 @@
       z-index: 10;
     }
     .recent-title {
-      font-family: 'Syne', sans-serif;
+      font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-size: 0.8rem;
       font-weight: 700;
       text-transform: uppercase;
@@ -654,7 +654,7 @@ function copyLink(code) {
 
 function showToast(msg) {
   const t = document.createElement('div');
-  t.style.cssText = `position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--navy-light);border:1px solid var(--gold);color:var(--white);padding:.75rem 1.5rem;border-radius:99px;font-size:.85rem;z-index:9999;font-family:'DM Sans',sans-serif;`;
+  t.style.cssText = `position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--navy-light);border:1px solid var(--gold);color:var(--white);padding:.75rem 1.5rem;border-radius:99px;font-size:.85rem;z-index:9999;font-family:'Source Sans 3',-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;`;
   t.textContent = '✅ ' + msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3000);
