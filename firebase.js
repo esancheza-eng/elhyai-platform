@@ -491,6 +491,27 @@ function certificateUrl(certId) {
   return `${SITE_URL}/validar.html?code=${certId}`;
 }
 
+/* LinkedIn "Agregar al perfil": abre el formulario de licencias y certificaciones ya lleno.
+   Si tu empresa tiene página en LinkedIn, pon su ID numérico en LINKEDIN_ORG_ID para que
+   aparezca con el logo; si queda vacío se usa el nombre. */
+const LINKEDIN_ORG_NAME = 'ElhyAi Consultores';
+const LINKEDIN_ORG_ID   = '';
+
+function linkedInAddUrl(cert) {
+  const d = new Date(cert.issuedAt || Date.now());
+  const p = new URLSearchParams({
+    startTask: 'CERTIFICATION_NAME',
+    name: cert.courseTitle || 'Certificado ElhyAI',
+    issueYear: String(d.getFullYear()),
+    issueMonth: String(d.getMonth() + 1),
+    certUrl: certificateUrl(cert.certId),
+    certId: cert.certId
+  });
+  if (LINKEDIN_ORG_ID) p.set('organizationId', LINKEDIN_ORG_ID);
+  else p.set('organizationName', LINKEDIN_ORG_NAME);
+  return `https://www.linkedin.com/profile/add?${p.toString()}`;
+}
+
 /* Emite el certificado una sola vez por curso; si ya existe, lo devuelve */
 async function issueCertificate(uid, courseId, courseTitle, studentName) {
   const mine = await database.ref(`users/${uid}/certificates/${courseId}`).once('value');
@@ -734,7 +755,7 @@ window.ElhyFirebase = {
   requestCourse, getMyRequests, whatsappPaymentLink,
   getUserCourses, isEnrolled,
   getAllProgress, saveLessonComplete,
-  issueCertificate, getUserCertificates, validateCertificate, certificateUrl,
+  issueCertificate, getUserCertificates, validateCertificate, certificateUrl, linkedInAddUrl,
   isAdmin, getAllUsers, getAllRequests, getAllPayments, getAllCertificates,
   approveCourse, rejectRequest, revokeCourse
 };

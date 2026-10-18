@@ -159,6 +159,8 @@
     .btn-download-cert{padding:.75rem 2rem;background:var(--accent);color:#fff;border-radius:4px;font-weight:700;font-size:.9rem;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s}
     .btn-download-cert:hover{background:var(--accent2);transform:translateY(-1px)}
     .btn-download-cert:disabled{opacity:.4;cursor:not-allowed;transform:none}
+    .btn-linkedin{background:#0a66c2;margin-left:.5rem}
+    .btn-linkedin:hover{background:#004182}
 
     /* ── Course selector (home screen) ── */
     .course-home{padding:2rem 1.5rem;max-width:900px}
@@ -327,6 +329,9 @@
           </div>
           <button class="btn-download-cert" id="btn-download-cert" disabled onclick="downloadCertificate()">
             <i class="fas fa-download"></i> Descargar certificado PDF
+          </button>
+          <button class="btn-download-cert btn-linkedin" id="btn-linkedin-cert" disabled onclick="addToLinkedIn()">
+            <i class="fab fa-linkedin"></i> Agregar a LinkedIn
           </button>
         </div>
       </div>
@@ -1105,6 +1110,24 @@ function updateProgress() {
   document.getElementById('cert-prog-fill').style.width = pct + '%';
   const certBtn = document.getElementById('btn-download-cert');
   certBtn.disabled = pct < 100;
+  document.getElementById('btn-linkedin-cert').disabled = pct < 100;
+}
+
+/* Abre LinkedIn con el certificado listo para agregar al perfil (lo emite si aún no existe) */
+async function addToLinkedIn() {
+  if (!currentUser || !currentCourse || getCourseProgress(currentCourse.id) < 100) return;
+  const win = window.open('', '_blank');   // se abre antes para que el navegador no la bloquee
+  try {
+    const cert = await ElhyFirebase.issueCertificate(
+      currentUser.uid, currentCourse.id, currentCourse.title,
+      (userProfile && userProfile.name) || currentUser.displayName || 'Estudiante');
+    const url = ElhyFirebase.linkedInAddUrl(cert);
+    if (win) win.location.href = url; else location.href = url;
+  } catch (err) {
+    console.error(err);
+    if (win) win.close();
+    showToast('⚠️ No se pudo preparar el certificado. Intenta de nuevo');
+  }
 }
 
 /* ── Tabs ── */

@@ -77,6 +77,8 @@
       padding: .55rem 1rem; display: inline-flex; align-items: center; gap: .45rem; text-decoration: none;
     }
     .btn-line:hover { border-color: var(--gold); color: var(--white); }
+    .btn-li { background: #0a66c2; border-color: #0a66c2; color: #fff; font-weight: 700; }
+    .btn-li:hover { background: #004182; border-color: #004182; }
     .materials { margin-top: 1rem; border-top: 1px solid rgba(201,168,76,.12); padding-top: .85rem; }
     .materials h3 { font-size: .8rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin-bottom: .5rem; }
     .materials a { display: flex; align-items: center; gap: .55rem; color: var(--grey-light); text-decoration: none; padding: .4rem 0; font-size: .92rem; }
@@ -203,6 +205,7 @@
           ${ready ? `
             <div class="actions">
               <button class="btn-cert" onclick="descargar(${i}, this)"><i class="fas fa-download"></i> Descargar certificado</button>
+              <a class="btn-line btn-li" href="${esc(ElhyFirebase.linkedInAddUrl(r.cert))}" target="_blank" rel="noopener"><i class="fab fa-linkedin"></i> Agregar a LinkedIn</a>
               <a class="btn-line" href="validar.html?code=${encodeURIComponent(r.cert.certId)}" target="_blank" rel="noopener"><i class="fas fa-shield-alt"></i> Validar</a>
             </div>
             ${materials.length ? `

@@ -544,6 +544,7 @@ function toViewModel(d) {
     credentialId: esc(d.certId),
     instructor:   'Master Elhy Christian Sánchez Arreaga',
     grade:        'Aprobado',
+    raw:          d,
     platform:     d.modality === 'presencial'
                     ? esc(['Presencial', d.hours ? d.hours + (Number(d.hours) === 1 ? ' hora' : ' horas') : '', d.location].filter(Boolean).join(' · '))
                     : 'Online · ElhyAI Academy',
@@ -603,8 +604,11 @@ function showValid(cert) {
           </div>
         </div>
         <div class="share-row">
-          <button class="btn-share linkedin" onclick="shareLinkedIn('${cert.credentialId}','${cert.course}')">
-            <i class="fab fa-linkedin"></i> Compartir en LinkedIn
+          <a class="btn-share linkedin" href="${esc(ElhyFirebase.linkedInAddUrl(cert.raw))}" target="_blank" rel="noopener">
+            <i class="fab fa-linkedin"></i> Agregar a LinkedIn
+          </a>
+          <button class="btn-share linkedin" onclick="shareLinkedIn('${cert.credentialId}')">
+            <i class="fas fa-share-alt"></i> Publicar en LinkedIn
           </button>
           <button class="btn-share copy" onclick="copyLink('${cert.credentialId}')">
             <i class="fas fa-link"></i> Copiar enlace
@@ -640,10 +644,9 @@ function showError(msg) {
 }
 
 /* ── Actions ─────────────────────────────────────── */
-function shareLinkedIn(code, course) {
+function shareLinkedIn(code) {
   const url = encodeURIComponent(ElhyFirebase.certificateUrl(code));
-  const title = encodeURIComponent(`Completé el curso: ${course} en ElhyAI`);
-  window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&title=${title}`, '_blank');
+  window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'noopener');
 }
 
 function copyLink(code) {
