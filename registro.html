@@ -112,6 +112,16 @@
       .register-right { padding: 2rem 1.5rem; }
     }
   </style>
+  <!-- PWA / móvil -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#1e3a5f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ElhyAI" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="stylesheet" href="mobile.css" />
 </head>
 <body>
 <div class="register-page">
@@ -324,5 +334,6 @@ function firebaseErrorMsg(code) {
   return msgs[code] || 'Error al crear la cuenta. Intenta nuevamente';
 }
 </script>
+<script src="mobile.js" defer></script>
 </body>
 </html>

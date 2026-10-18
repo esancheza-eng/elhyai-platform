@@ -53,6 +53,16 @@
       .dash-sidebar { position: static; height: auto; padding: 1rem 0; }
     }
   </style>
+  <!-- PWA / móvil -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#1e3a5f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ElhyAI" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="stylesheet" href="mobile.css" />
 </head>
 <body>
 
@@ -965,5 +975,6 @@
     }
   }
 </script>
+<script src="mobile.js" defer></script>
 </body>
 </html>

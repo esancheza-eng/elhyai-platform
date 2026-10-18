@@ -1,0 +1,210 @@
+/* ============================================================
+   mobile.css — ElhyAI Academy
+   Ajustes SOLO para celulares/tablets. No cambia la vista de
+   escritorio. Se carga al final de cada página.
+   ============================================================ */
+
+/* Universal (seguro en cualquier pantalla) */
+img, video, iframe { max-width: 100%; }
+html { -webkit-text-size-adjust: 100%; }
+
+/* Menú móvil (lo controla mobile.js) */
+.m-menu { display: none; }
+
+@media (max-width: 768px) {
+
+  html, body { overflow-x: hidden; }
+
+  /* Evita el zoom automático de iPhone al tocar un campo */
+  input, select, textarea { font-size: 16px !important; }
+
+  /* Respeta la muesca / barra inferior del teléfono (modo app) */
+  body { padding-bottom: env(safe-area-inset-bottom); }
+
+  /* ── Panel desplegable del menú ───────────────────────── */
+  .m-menu {
+    display: none;
+    position: fixed;
+    left: 0; right: 0;
+    top: var(--m-nav-h, 64px);
+    max-height: calc(100vh - var(--m-nav-h, 64px));
+    overflow-y: auto;
+    background: #0a1628;
+    border-bottom: 1px solid rgba(201,168,76,.25);
+    box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    padding: .75rem 1rem 1.25rem;
+    z-index: 1001;
+    flex-direction: column;
+    gap: .25rem;
+  }
+  .m-menu.open { display: flex; }
+  .m-menu a {
+    display: block;
+    padding: .85rem .75rem;
+    color: #f0f4ff;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    text-decoration: none;
+  }
+  .m-menu a:active, .m-menu a.active { background: rgba(201,168,76,.12); color: #e6c97a; }
+  .m-menu .m-menu-actions { display: flex; flex-direction: column; gap: .6rem; margin-top: .75rem; }
+  .m-menu .m-menu-actions button {
+    width: 100%;
+    padding: .85rem 1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1.5px solid rgba(201,168,76,.6);
+    background: transparent;
+    color: #e6c97a;
+  }
+  .m-menu .m-menu-actions button.m-primary {
+    background: linear-gradient(135deg,#c9a84c,#e6c97a);
+    color: #050d1a;
+    border-color: transparent;
+  }
+
+  /* ── INDEX (portada) ──────────────────────────────────── */
+  .nav-inner { gap: .6rem !important; padding: 0 1rem !important; }
+  .nav-logo { font-size: 1.05rem !important; white-space: nowrap; }
+  .btn-nl, .btn-nr { padding: .45rem .8rem !important; font-size: .8rem !important; white-space: nowrap; }
+  .btn-nl { margin-left: auto; }
+  .nav-toggle { padding: .35rem .5rem; cursor: pointer; }
+
+  /* ── CURSOS / VALIDAR (barra .nav-container) ──────────── */
+  .nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+    padding: .9rem 1rem;
+    max-width: 100%;
+  }
+  .nav-container .nav-logo { font-size: 1.05rem !important; }
+  .nav-container .nav-menu { display: none; list-style: none; }
+  .nav-container .nav-actions { display: flex; align-items: center; gap: .5rem; margin-left: auto; }
+  .nav-container .btn-ghost,
+  .nav-container .btn-primary {
+    padding: .45rem .8rem;
+    border-radius: 8px;
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1.5px solid rgba(201,168,76,.55);
+    background: transparent;
+    color: #e6c97a;
+  }
+  .nav-container .btn-primary {
+    background: linear-gradient(135deg,#c9a84c,#e6c97a);
+    color: #050d1a;
+    border-color: transparent;
+  }
+  .nav-container .nav-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 40px; height: 40px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 8px;
+    color: #f0f4ff;
+    font-size: 1.1rem;
+  }
+
+  /* Pie de página de cursos.html */
+  .footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .footer-grid { grid-template-columns: 1fr !important; gap: 1.75rem; }
+  .footer-col-title {
+    font-size: .8rem; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: #e6c97a; margin-bottom: .6rem;
+  }
+  .footer-links { list-style: none; padding: 0; }
+  .footer-links li { margin-bottom: .45rem; }
+  .footer-links a { color: #c5d0e0; font-size: .95rem; }
+  .footer-desc { color: #8898b0; font-size: .92rem; line-height: 1.6; margin-top: .4rem; }
+  div.footer-brand { font-size: 1.25rem; font-weight: 800; }
+  div.footer-brand span { color: #c9a84c; }
+
+  /* ── ADMIN: barra superior ────────────────────────────── */
+  .navbar .container.nav-inner { padding: 0 1rem !important; }
+  .navbar .container.nav-inner .nav-logo { font-size: 1rem !important; letter-spacing: 0; }
+  .nav-actions .btn.btn-sm { padding: .45rem .65rem; font-size: .78rem; white-space: nowrap; }
+
+  /* ── ADMIN: menú lateral → pestañas deslizables ───────── */
+  .dash-layout .dash-sidebar {
+    display: block !important;
+    position: sticky !important;
+    top: var(--m-nav-h, 64px) !important;
+    height: auto !important;
+    padding: .55rem 0 !important;
+    z-index: 50;
+    border-right: 0;
+    border-bottom: 1px solid var(--glass-border, rgba(201,168,76,.18));
+  }
+  .dash-sidebar .sidebar-user,
+  .dash-sidebar .sidebar-label { display: none; }
+  .dash-sidebar .sidebar-nav {
+    display: flex;
+    gap: .45rem;
+    overflow-x: auto;
+    padding: 0 1rem !important;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dash-sidebar .sidebar-nav::-webkit-scrollbar { display: none; }
+  .dash-sidebar .sidebar-link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: .55rem .95rem !important;
+    border-radius: 99px;
+    border: 1px solid var(--glass-border, rgba(201,168,76,.18));
+    font-size: .85rem;
+    gap: .45rem;
+  }
+  .dash-sidebar .sidebar-link::before { display: none !important; }
+  .dash-sidebar .sidebar-link .count-pill { margin-left: .25rem; }
+
+  .dash-main { padding: 1.25rem 1rem !important; min-width: 0; }
+  .admin-stat-row { grid-template-columns: 1fr 1fr !important; gap: .75rem !important; }
+  .admin-stat-row .stat-card { padding: 1rem !important; }
+  .admin-header { flex-wrap: wrap; gap: .75rem; }
+  .table-wrap { padding: 1rem !important; -webkit-overflow-scrolling: touch; }
+  .grant-row { flex-wrap: wrap; }
+  .grant-row select { max-width: 100%; }
+
+  /* ── DASHBOARD (aula del alumno) ──────────────────────── */
+  .topbar { gap: .55rem !important; padding: 0 .75rem !important; }
+  .topbar-btn { padding: .45rem .6rem !important; }
+  .course-layout .sidebar { width: min(360px, 88vw) !important; left: -100vw; }
+  .course-layout .sidebar.open { left: 0 !important; }
+
+  /* Toast sin desbordar en pantallas angostas */
+  .toast { white-space: normal !important; max-width: calc(100vw - 2rem); text-align: center; }
+}
+
+@media (max-width: 600px) {
+  .cf-grid { grid-template-columns: 1fr !important; }
+  .cf-wide { grid-column: 1 / -1 !important; }
+  .topbar-course { display: none !important; }
+  .topbar-progress .progress-text { display: none; }
+  .topbar-progress .progress-track { width: 70px; }
+}
+
+@media (max-width: 480px) {
+  /* Botones de sesión pasan al menú ☰ */
+  .btn-nl, .btn-nr,
+  .nav-container .btn-ghost,
+  .nav-container .btn-primary { display: none !important; }
+  .nav-toggle { margin-left: auto; }
+
+  /* Admin y aula: botones solo con icono */
+  .nav-actions .btn.btn-sm .m-label,
+  .topbar-btn .m-label,
+  .btn-menu .m-label { display: none; }
+  .navbar .container.nav-inner .nav-logo span[style] { display: none; }
+
+  .admin-stat-row .stat-card-value { font-size: 1.5rem !important; }
+}

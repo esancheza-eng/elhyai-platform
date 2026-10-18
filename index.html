@@ -179,6 +179,16 @@
     @media(max-width:1024px){.footer-grid{grid-template-columns:1fr 1fr}}
     @media(max-width:768px){.nav-search,.nav-links{display:none}.nav-toggle{display:block}.footer-grid{grid-template-columns:1fr}.mincludes{grid-template-columns:1fr}.mstats{grid-template-columns:1fr 1fr}}
   </style>
+  <!-- PWA / móvil -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#1e3a5f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ElhyAI" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="stylesheet" href="mobile.css" />
 </head>
 <body>
 
@@ -622,5 +632,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 });
 </script>
+<script src="mobile.js" defer></script>
 </body>
 </html>
