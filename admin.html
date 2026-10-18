@@ -32,6 +32,16 @@
     .cat-input.num { min-width: 0; width: 90px; }
     .cat-input:focus { outline: none; border-color: var(--gold); }
     .cat-input.dirty { border-color: var(--gold); }
+    .cf-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem; }
+    .cf-field { display: flex; flex-direction: column; gap: .3rem; font-size: .78rem; color: var(--grey); }
+    .cf-field .cat-input, .cf-field textarea { min-width: 0; width: 100%; }
+    .cf-wide { grid-column: span 2; }
+    .cf-full { grid-column: 1 / -1; }
+    .cf-check { display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: var(--grey-light); }
+    textarea.cat-input { resize: vertical; font-family: inherit; }
+    select.cat-input { cursor: pointer; }
+    .badge-blue { background: rgba(32,96,192,.15); color: #7bb8f8; }
+    @media (max-width: 900px) { .cf-grid { grid-template-columns: 1fr 1fr; } .cf-wide { grid-column: 1 / -1; } }
     .empty-row td { text-align: center; color: var(--grey); padding: 2rem 1rem; }
     .gate { max-width: 460px; margin: 18vh auto 0; text-align: center; padding: 2.5rem 2rem; border-radius: var(--radius); }
     .gate i { font-size: 2.5rem; color: var(--gold); margin-bottom: 1rem; }
@@ -83,6 +93,7 @@
       <a href="#" class="sidebar-link" onclick="adminTab('payments',this);return false"><i class="fa-solid fa-credit-card"></i> Pagos</a>
       <a href="#" class="sidebar-link" onclick="adminTab('certs',this);return false"><i class="fa-solid fa-award"></i> Certificados</a>
       <a href="#" class="sidebar-link" onclick="adminTab('courses',this);return false"><i class="fa-solid fa-book"></i> Cursos y precios</a>
+      <a href="#" class="sidebar-link" onclick="adminTab('presencial',this);return false"><i class="fa-solid fa-chalkboard-user"></i> Presenciales</a>
 
       <div class="sidebar-label" style="margin-top:1rem">Sitio</div>
       <a href="#" class="sidebar-link" onclick="loadAll();return false"><i class="fa-solid fa-rotate"></i> Actualizar datos</a>
@@ -178,12 +189,110 @@
           <h2>Cursos y precios</h2>
           <p style="font-size:.85rem;color:var(--grey)">Cambia el nombre o el precio y presiona <strong>Guardar</strong>. Se actualiza en todo el sitio. El precio anterior es opcional: si es mayor que el precio, se muestra tachado con el % de descuento.</p>
         </div>
+        <button class="btn btn-gold btn-sm" style="flex-shrink:0;white-space:nowrap;margin-left:1rem" onclick="openCourseForm()"><i class="fa-solid fa-plus"></i> Nuevo curso</button>
+      </div>
+
+      <!-- Formulario crear / editar curso -->
+      <div id="course-form" class="glass" style="display:none;padding:1.5rem;border-radius:var(--radius);margin-bottom:1.5rem">
+        <h3 id="cf-heading" style="font-size:1.1rem;margin-bottom:1rem">Nuevo curso</h3>
+        <div class="cf-grid">
+          <label class="cf-field cf-wide">Nombre del curso *
+            <input class="cat-input" id="cf-title" maxlength="120" placeholder="Ej: Motivación y trabajo en equipo" />
+          </label>
+          <label class="cf-field">Modalidad
+            <select class="cat-input" id="cf-modality" onchange="toggleCfPresencial()">
+              <option value="presencial">Presencial</option>
+              <option value="online">Online</option>
+            </select>
+          </label>
+          <label class="cf-field">Categoría
+            <input class="cat-input" id="cf-category" maxlength="40" placeholder="Ej: Habilidades blandas" />
+          </label>
+          <label class="cf-field">Ícono (emoji)
+            <input class="cat-input" id="cf-emoji" maxlength="8" placeholder="👥" />
+          </label>
+          <label class="cf-field">Precio ($) *
+            <input class="cat-input" id="cf-price" type="number" min="0" max="10000" step="0.01" placeholder="0" />
+          </label>
+          <label class="cf-field">Precio anterior ($)
+            <input class="cat-input" id="cf-oprice" type="number" min="0" max="10000" step="0.01" placeholder="opcional" />
+          </label>
+          <label class="cf-field">Duración (horas)
+            <input class="cat-input" id="cf-hours" type="number" min="0" max="1000" step="0.5" placeholder="Ej: 8" />
+          </label>
+          <label class="cf-field cf-pres">Fecha
+            <input class="cat-input" id="cf-date" maxlength="60" placeholder="Ej: 15 de noviembre de 2026" />
+          </label>
+          <label class="cf-field cf-pres cf-wide">Lugar
+            <input class="cat-input" id="cf-location" maxlength="120" placeholder="Ej: Auditorio Empresa X, Milagro" />
+          </label>
+          <label class="cf-field cf-full">Descripción
+            <textarea class="cat-input" id="cf-description" rows="3" maxlength="1500" placeholder="Qué aprenderán los participantes"></textarea>
+          </label>
+          <label class="cf-field cf-full">Material de apoyo — un enlace por línea: <em>Título | enlace</em>
+            <textarea class="cat-input" id="cf-materials" rows="4" placeholder="Presentación del taller | https://drive.google.com/...&#10;Guía de ejercicios | https://drive.google.com/..."></textarea>
+          </label>
+          <label class="cf-check cf-full"><input type="checkbox" id="cf-visible" checked /> Mostrar este curso en el catálogo público</label>
+        </div>
+        <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:1rem">
+          <button class="btn btn-outline btn-sm" onclick="closeCourseForm()">Cancelar</button>
+          <button class="btn btn-gold btn-sm" id="cf-save" onclick="submitCourseForm()"><i class="fa-solid fa-floppy-disk"></i> Guardar curso</button>
+        </div>
       </div>
       <div class="glass table-wrap" style="padding:1.5rem;border-radius:var(--radius)">
         <table class="admin-table">
           <thead><tr><th></th><th>Nombre del curso</th><th>Precio ($)</th><th>Precio anterior ($)</th><th>Alumnos</th><th></th></tr></thead>
           <tbody id="tb-courses"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- ── PRESENCIALES ── -->
+    <div id="atab-presencial" class="dash-tab-content">
+      <div class="admin-header">
+        <div>
+          <h2>Cursos presenciales</h2>
+          <p style="font-size:.85rem;color:var(--grey)">Carga la lista de participantes, márcalos como finalizados y envíales el enlace para descargar su certificado con su cédula.</p>
+        </div>
+      </div>
+
+      <div class="glass" style="padding:1.25rem 1.5rem;border-radius:var(--radius);margin-bottom:1.25rem">
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+          <label class="cf-field" style="flex:1;min-width:240px">Curso presencial
+            <select class="cat-input" id="pr-course" onchange="renderPresencial()"></select>
+          </label>
+          <div class="cf-field" style="min-width:260px">Enlace para los participantes
+            <div style="display:flex;gap:.4rem">
+              <input class="cat-input" id="pr-link" readonly />
+              <button class="btn btn-outline btn-sm btn-xs" onclick="copyParticipantLink()"><i class="fa-solid fa-copy"></i> Copiar</button>
+            </div>
+          </div>
+        </div>
+        <div id="pr-info" class="muted" style="margin-top:.6rem"></div>
+      </div>
+
+      <div id="pr-body">
+        <div class="glass" style="padding:1.25rem 1.5rem;border-radius:var(--radius);margin-bottom:1.25rem">
+          <h3 style="font-size:1rem;margin-bottom:.4rem">Agregar participantes</h3>
+          <p class="muted" style="margin-bottom:.6rem">Copia desde Excel las columnas <strong>Nombre | Cédula | Empresa</strong> (la empresa es opcional) y pégalas aquí, una persona por línea.</p>
+          <textarea class="cat-input" id="pr-paste" rows="5" placeholder="Juan Pérez&#9;0912345678&#9;Empresa ABC&#10;María Torres&#9;0923456789&#9;Empresa ABC"></textarea>
+          <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-top:.6rem">
+            <input class="cat-input" id="pr-company" maxlength="120" placeholder="Empresa para todos (opcional)" style="max-width:280px" />
+            <button class="btn btn-gold btn-sm" onclick="addParticipantsFromPaste()"><i class="fa-solid fa-user-plus"></i> Agregar a la lista</button>
+          </div>
+          <div id="pr-paste-msg" class="muted" style="margin-top:.5rem"></div>
+        </div>
+
+        <div class="glass table-wrap" style="padding:1.5rem;border-radius:var(--radius)">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.75rem">
+            <h3 style="font-size:1rem" id="pr-count">Participantes</h3>
+            <button class="btn-approve btn-xs" onclick="finishAll()"><i class="fa-solid fa-flag-checkered"></i> Marcar todos como finalizados</button>
+          </div>
+          <table class="admin-table">
+            <thead><tr><th>Nombre</th><th>Cédula</th><th>Empresa</th><th>Estado</th><th>Acción</th></tr></thead>
+            <tbody id="tb-presencial"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -195,11 +304,14 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="firebase.js"></script>
+<script src="certificado-pdf.js"></script>
 <script src="app.js"></script>
 <script>
   const CATALOG = ElhyFirebase.COURSE_CATALOG;
-  let USERS = {}, REQUESTS = {}, PAYMENTS = {}, CERTS = {};
+  let USERS = {}, REQUESTS = {}, PAYMENTS = {}, CERTS = {}, PARTICIPANTS = {};
 
   /* ── Helpers ── */
   function esc(v) {
@@ -249,11 +361,12 @@
   async function loadAll() {
     try {
       await ElhyFirebase.catalogReady;
-      [USERS, REQUESTS, PAYMENTS, CERTS] = await Promise.all([
+      [USERS, REQUESTS, PAYMENTS, CERTS, PARTICIPANTS] = await Promise.all([
         ElhyFirebase.getAllUsers(),
         ElhyFirebase.getAllRequests(),
         ElhyFirebase.getAllPayments(),
-        ElhyFirebase.getAllCertificates()
+        ElhyFirebase.getAllCertificates(),
+        ElhyFirebase.database.ref('participants').once('value').then(s => s.val() || {})
       ]);
     } catch (err) {
       console.error(err);
@@ -266,6 +379,7 @@
     renderPayments();
     renderCerts();
     renderCourses();
+    renderPresencial();
   }
 
   function flatRequests() {
@@ -368,6 +482,7 @@
       return;
     }
     const options = Object.entries(CATALOG)
+      .filter(([, c]) => c.modality !== 'presencial')
       .map(([id, c]) => `<option value="${id}">${esc(c.title)}</option>`).join('');
     tb.innerHTML = list.map(u => {
       const courses = Object.keys(u.courses || {});
@@ -472,17 +587,27 @@
   function renderCourses() {
     const counts = {};
     Object.values(USERS).forEach(u => Object.keys(u.courses || {}).forEach(cid => counts[cid] = (counts[cid] || 0) + 1));
+    Object.entries(PARTICIPANTS).forEach(([cid, list]) => counts[cid] = (counts[cid] || 0) + Object.keys(list || {}).length);
     document.getElementById('tb-courses').innerHTML = Object.entries(CATALOG).map(([id, c]) => `
       <tr data-course="${id}">
         <td style="font-size:1.4rem">${c.emoji}</td>
         <td>
           <input class="cat-input" data-f="title" maxlength="120" value="${esc(c.title)}" oninput="markDirty(this)" />
-          <div class="muted" style="margin-top:.25rem"><span class="badge badge-yellow">${esc(c.category)}</span></div>
+          <div class="muted" style="margin-top:.25rem">
+            <span class="badge badge-yellow">${esc(c.category)}</span>
+            ${c.modality === 'presencial' ? '<span class="badge badge-blue">Presencial</span>' : '<span class="badge badge-green">Online</span>'}
+            ${c.visible === false ? '<span class="badge badge-red">Oculto</span>' : ''}
+          </div>
         </td>
         <td><input class="cat-input num" data-f="price" type="number" min="0" max="10000" step="0.01" value="${c.price}" oninput="markDirty(this)" /></td>
         <td><input class="cat-input num" data-f="originalPrice" type="number" min="0" max="10000" step="0.01" value="${c.originalPrice ?? ''}" placeholder="—" oninput="markDirty(this)" /></td>
         <td>${counts[id] || 0}</td>
-        <td><button class="btn-approve btn-xs" onclick="saveCourseRow('${id}', this)"><i class="fa-solid fa-floppy-disk"></i> Guardar</button></td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-approve btn-xs" onclick="saveCourseRow('${id}', this)"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+            ${c.custom ? `<button class="btn btn-outline btn-sm btn-xs" onclick="openCourseForm('${id}')"><i class="fa-solid fa-pen"></i> Editar</button>` : ''}
+          </div>
+        </td>
       </tr>`).join('');
   }
 
@@ -510,6 +635,230 @@
       toast('No se pudo guardar. ¿Publicaste las reglas nuevas en Firebase?', 'error');
       btn.disabled = false;
     }
+  }
+
+  /* ── Crear / editar curso ── */
+  let editingCourseId = null;
+
+  function toggleCfPresencial() {
+    const pres = document.getElementById('cf-modality').value === 'presencial';
+    document.querySelectorAll('.cf-pres').forEach(el => el.style.display = pres ? '' : 'none');
+  }
+
+  function openCourseForm(id) {
+    editingCourseId = id || null;
+    const c = id ? CATALOG[id] : {};
+    const v = (k, d = '') => (c[k] ?? d);
+    document.getElementById('cf-heading').textContent = id ? `Editar: ${c.title}` : 'Nuevo curso';
+    document.getElementById('cf-title').value = v('title');
+    document.getElementById('cf-modality').value = v('modality', 'presencial');
+    document.getElementById('cf-category').value = v('category');
+    document.getElementById('cf-emoji').value = v('emoji');
+    document.getElementById('cf-price').value = v('price');
+    document.getElementById('cf-oprice').value = v('originalPrice') ?? '';
+    document.getElementById('cf-hours').value = v('hours') || '';
+    document.getElementById('cf-date').value = v('date');
+    document.getElementById('cf-location').value = v('location');
+    document.getElementById('cf-description').value = v('description');
+    document.getElementById('cf-materials').value = (c.materials || []).map(m => `${m.title} | ${m.url}`).join('\n');
+    document.getElementById('cf-visible').checked = c.visible !== false;
+    toggleCfPresencial();
+    const form = document.getElementById('course-form');
+    form.style.display = '';
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('cf-title').focus();
+  }
+
+  function closeCourseForm() {
+    document.getElementById('course-form').style.display = 'none';
+    editingCourseId = null;
+  }
+
+  function parseMaterials(text) {
+    const out = [], bad = [];
+    text.split('\n').map(l => l.trim()).filter(Boolean).forEach(line => {
+      const m = line.match(/^(.*?)(?:\s*[|\t]\s*)?(https?:\/\/\S+)\s*$/i);
+      if (!m) { bad.push(line); return; }
+      out.push({ title: (m[1] || '').replace(/[|\-–:]\s*$/, '').trim() || 'Material de apoyo', url: m[2] });
+    });
+    return { out, bad };
+  }
+
+  async function submitCourseForm() {
+    const g = id => document.getElementById(id).value.trim();
+    const title = g('cf-title'), price = g('cf-price'), oprice = g('cf-oprice'), hours = g('cf-hours');
+    if (!title) { toast('Escribe el nombre del curso', 'error'); return; }
+    if (price === '' || isNaN(Number(price)) || Number(price) < 0 || Number(price) > 10000) { toast('Precio no válido', 'error'); return; }
+    if (oprice !== '' && (isNaN(Number(oprice)) || Number(oprice) < 0 || Number(oprice) > 10000)) { toast('Precio anterior no válido', 'error'); return; }
+    if (hours !== '' && (isNaN(Number(hours)) || Number(hours) < 0 || Number(hours) > 1000)) { toast('Duración no válida', 'error'); return; }
+    const { out: materials, bad } = parseMaterials(document.getElementById('cf-materials').value);
+    if (bad.length) { toast(`Revisa el material: "${bad[0].slice(0, 40)}" no tiene un enlace válido (https://...)`, 'error'); return; }
+    const btn = document.getElementById('cf-save');
+    btn.disabled = true;
+    try {
+      const id = await ElhyFirebase.saveCustomCourse(editingCourseId, {
+        title, price: Number(price), originalPrice: oprice, hours,
+        modality: g('cf-modality'), category: g('cf-category'), emoji: g('cf-emoji'),
+        date: g('cf-date'), location: g('cf-location'), description: g('cf-description'),
+        materials, visible: document.getElementById('cf-visible').checked
+      });
+      toast(editingCourseId ? 'Curso actualizado ✅' : 'Curso creado ✅', 'success');
+      closeCourseForm();
+      renderCourses();
+      renderStudents();
+      if (CATALOG[id].modality === 'presencial') {
+        document.getElementById('pr-course').dataset.want = id;
+        renderPresencial();
+      }
+    } catch (err) {
+      console.error(err);
+      toast('No se pudo guardar el curso. ¿Publicaste las reglas nuevas en Firebase?', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  /* ── Presenciales ── */
+  function presencialCourses() {
+    return Object.entries(CATALOG).filter(([, c]) => c.modality === 'presencial')
+      .sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
+  }
+
+  function participantLink() { return `${ElhyFirebase.SITE_URL}/certificado.html`; }
+
+  function copyParticipantLink() {
+    const link = participantLink();
+    (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject())
+      .then(() => toast('Enlace copiado', 'success'))
+      .catch(() => prompt('Copia este enlace:', link));
+  }
+
+  function renderPresencial() {
+    const sel = document.getElementById('pr-course');
+    const list = presencialCourses();
+    const want = sel.dataset.want || sel.value;
+    delete sel.dataset.want;
+    document.getElementById('pr-link').value = participantLink();
+    if (!list.length) {
+      sel.innerHTML = '<option value="">— No hay cursos presenciales —</option>';
+      document.getElementById('pr-info').innerHTML = 'Crea uno en <strong>Cursos y precios → Nuevo curso</strong> con modalidad <em>Presencial</em>.';
+      document.getElementById('pr-body').style.display = 'none';
+      return;
+    }
+    sel.innerHTML = list.map(([id, c]) => `<option value="${id}">${esc(c.title)}${c.date ? ' · ' + esc(c.date) : ''}</option>`).join('');
+    if (want && CATALOG[want]) sel.value = want;
+    const id = sel.value, c = CATALOG[id];
+    document.getElementById('pr-body').style.display = '';
+    document.getElementById('pr-info').innerHTML = [
+      c.hours ? `<i class="fa-regular fa-clock"></i> ${esc(c.hours)} horas` : '',
+      c.date ? `<i class="fa-regular fa-calendar"></i> ${esc(c.date)}` : '',
+      c.location ? `<i class="fa-solid fa-location-dot"></i> ${esc(c.location)}` : '',
+      `<i class="fa-solid fa-paperclip"></i> ${(c.materials || []).length} materiales`
+    ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+
+    const parts = Object.values(PARTICIPANTS[id] || {}).sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    const done = parts.filter(p => p.finished).length;
+    document.getElementById('pr-count').textContent = `Participantes (${parts.length}) · Finalizados: ${done}`;
+    const tb = document.getElementById('tb-presencial');
+    if (!parts.length) {
+      tb.innerHTML = `<tr class="empty-row"><td colspan="5">Todavía no hay participantes en este curso.</td></tr>`;
+      return;
+    }
+    tb.innerHTML = parts.map(p => `
+      <tr>
+        <td style="font-weight:600">${esc(p.name)}</td>
+        <td style="font-family:monospace">${esc(p.cedula)}${ElhyFirebase.isValidCedulaEC(p.cedula) || !/^\d+$/.test(p.cedula) ? '' : ' <span class="badge badge-red" title="No es una cédula ecuatoriana válida">revisar</span>'}</td>
+        <td class="muted">${esc(p.company) || '—'}</td>
+        <td>${p.finished
+          ? `<span class="badge badge-green">Finalizado</span><div class="muted" style="font-family:monospace;font-size:.72rem;margin-top:.2rem">${esc(p.certId || '')}</div>`
+          : '<span class="badge badge-yellow">Inscrito</span>'}</td>
+        <td>
+          <div class="row-actions">
+            ${p.finished
+              ? `<button class="btn btn-outline btn-sm btn-xs" title="Descargar certificado" onclick="adminDownloadCert('${esc(p.certId)}')"><i class="fa-solid fa-download"></i></button>
+                 <button class="btn-reject btn-xs" title="Quitar finalizado" onclick="unfinishOne('${esc(id)}','${esc(p.cedula)}')"><i class="fa-solid fa-rotate-left"></i></button>`
+              : `<button class="btn-approve btn-xs" onclick="finishOne('${esc(id)}','${esc(p.cedula)}')"><i class="fa-solid fa-check"></i> Finalizar</button>
+                 <button class="btn-reject btn-xs" title="Quitar de la lista" onclick="removeOne('${esc(id)}','${esc(p.cedula)}')"><i class="fa-solid fa-trash"></i></button>`}
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  function parseParticipants(text, defaultCompany) {
+    const out = [], bad = [];
+    text.split('\n').map(l => l.trim()).filter(Boolean).forEach(line => {
+      let cols = line.includes('\t') ? line.split('\t') : line.split(/\s*[;,|]\s*/);
+      cols = cols.map(c => c.trim()).filter((c, i) => c || i < 2);
+      // localizar la cédula (columna con 5+ dígitos/letras sin espacios y con al menos un número)
+      const idx = cols.findIndex(c => /^[A-Za-z0-9.\-]{5,20}$/.test(c) && /\d/.test(c));
+      if (idx === -1) { bad.push(line); return; }
+      const cedula = ElhyFirebase.normalizeId(cols[idx]);
+      const rest = cols.filter((_, i) => i !== idx);
+      const name = rest[0] || '';
+      if (!name) { bad.push(line); return; }
+      out.push({ name, cedula, company: rest[1] || defaultCompany || '' });
+    });
+    return { out, bad };
+  }
+
+  async function addParticipantsFromPaste() {
+    const id = document.getElementById('pr-course').value;
+    if (!id) return;
+    const msg = document.getElementById('pr-paste-msg');
+    const { out, bad } = parseParticipants(document.getElementById('pr-paste').value, document.getElementById('pr-company').value.trim());
+    if (!out.length) { msg.textContent = bad.length ? `No se reconoció ninguna línea. Formato: Nombre | Cédula | Empresa` : 'Pega al menos una persona.'; return; }
+    const invalid = out.filter(p => /^\d+$/.test(p.cedula) && !ElhyFirebase.isValidCedulaEC(p.cedula));
+    if (invalid.length && !confirm(`${invalid.length} cédula(s) no parecen ecuatorianas válidas (ej. ${invalid[0].cedula}). ¿Agregar de todas formas?`)) return;
+    try {
+      const n = await ElhyFirebase.addParticipants(id, out);
+      PARTICIPANTS[id] = await ElhyFirebase.getParticipants(id);
+      document.getElementById('pr-paste').value = '';
+      msg.textContent = `✅ ${n} participante(s) agregados o actualizados.` + (bad.length ? ` ${bad.length} línea(s) no se reconocieron: "${bad[0].slice(0, 50)}"` : '');
+      renderPresencial();
+      renderCourses();
+    } catch (err) {
+      console.error(err);
+      toast('No se pudo agregar. ¿Publicaste las reglas nuevas en Firebase?', 'error');
+    }
+  }
+
+  async function refreshParticipants(id) {
+    PARTICIPANTS[id] = await ElhyFirebase.getParticipants(id);
+    CERTS = await ElhyFirebase.getAllCertificates();
+    renderPresencial(); renderCerts(); renderStats(); renderCourses();
+  }
+
+  async function finishOne(id, cedula) {
+    try { await ElhyFirebase.finishParticipants(id, [cedula]); toast('Marcado como finalizado ✅', 'success'); await refreshParticipants(id); }
+    catch (err) { console.error(err); toast('No se pudo finalizar', 'error'); }
+  }
+
+  async function finishAll() {
+    const id = document.getElementById('pr-course').value;
+    const pending = Object.values(PARTICIPANTS[id] || {}).filter(p => !p.finished);
+    if (!pending.length) { toast('No hay participantes pendientes', 'info'); return; }
+    if (!confirm(`¿Marcar como finalizados a ${pending.length} participante(s) de "${CATALOG[id].title}"?\nSe emitirá su certificado.`)) return;
+    try { const n = await ElhyFirebase.finishParticipants(id, pending.map(p => p.cedula)); toast(`${n} participante(s) finalizados ✅`, 'success'); await refreshParticipants(id); }
+    catch (err) { console.error(err); toast('No se pudo finalizar', 'error'); }
+  }
+
+  async function unfinishOne(id, cedula) {
+    if (!confirm('¿Quitar la marca de finalizado? Ya no podrá descargar el certificado hasta que lo vuelvas a finalizar (el código se conserva).')) return;
+    try { await ElhyFirebase.unfinishParticipant(id, cedula); await refreshParticipants(id); }
+    catch (err) { console.error(err); toast('No se pudo cambiar', 'error'); }
+  }
+
+  async function removeOne(id, cedula) {
+    const p = (PARTICIPANTS[id] || {})[cedula];
+    if (!confirm(`¿Quitar a ${p ? p.name : cedula} de la lista?`)) return;
+    try { await ElhyFirebase.removeParticipant(id, cedula); await refreshParticipants(id); }
+    catch (err) { console.error(err); toast('No se pudo quitar', 'error'); }
+  }
+
+  async function adminDownloadCert(certId) {
+    const cert = CERTS[certId] || await ElhyFirebase.validateCertificate(certId);
+    if (!cert) { toast('Certificado no encontrado', 'error'); return; }
+    await downloadCertificatePDF(cert);
   }
 </script>
 </body>

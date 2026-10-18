@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Descarga tu certificado — ElhyAI Academy</title>
+  <meta name="description" content="Participantes de cursos presenciales de ElhyAi Consultores: descarga tu certificado y el material de apoyo con tu número de cédula." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --navy: #050d1a; --navy-mid: #0a1628; --navy-light: #0e2040;
+      --gold: #c9a84c; --gold-light: #e6c97a; --gold-dim: #8a6f30;
+      --white: #f0f4ff; --grey: #8898b0; --grey-light: #c5d0e0;
+      --glass: rgba(14, 32, 64, 0.55); --glass-border: rgba(201, 168, 76, 0.18);
+      --radius: 16px; --radius-sm: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Source Sans 3', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      background: radial-gradient(ellipse at top, var(--navy-light) 0%, var(--navy) 60%);
+      min-height: 100vh;
+      color: var(--white);
+    }
+    .cert-page { max-width: 760px; margin: 0 auto; padding: 2.5rem 1rem 4rem; }
+    .cert-brand { text-align: center; margin-bottom: 2rem; }
+    .cert-brand img { height: 74px; border-radius: 10px; background: #fff; padding: .35rem .6rem; }
+    .cert-brand p { margin-top: .6rem; font-size: .72rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); }
+    .cert-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 2rem 1.75rem;
+      backdrop-filter: blur(10px);
+    }
+    .cert-card h1 { font-size: 1.7rem; font-weight: 800; text-align: center; margin-bottom: .35rem; }
+    .cert-card .sub { text-align: center; color: var(--grey-light); font-size: .95rem; margin-bottom: 1.5rem; }
+    .search-row { display: flex; gap: .65rem; }
+    .search-row input {
+      flex: 1; min-width: 0;
+      background: rgba(5, 13, 26, .6); border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+      color: var(--white); font: inherit; font-size: 1.05rem; letter-spacing: 1px; padding: .85rem 1rem;
+    }
+    .search-row input:focus { outline: none; border-color: var(--gold); }
+    .search-row button {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim)); color: var(--navy);
+      border: 0; border-radius: var(--radius-sm); font: inherit; font-weight: 700; padding: 0 1.4rem; cursor: pointer;
+      display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap;
+    }
+    .search-row button:disabled { opacity: .6; cursor: wait; }
+    .hint { font-size: .8rem; color: var(--grey); margin-top: .6rem; text-align: center; }
+    #results { margin-top: 1.75rem; display: flex; flex-direction: column; gap: 1rem; }
+    .greet { font-size: 1.05rem; color: var(--grey-light); }
+    .greet strong { color: var(--white); }
+    .course-box {
+      background: rgba(5, 13, 26, .55); border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+      padding: 1.25rem 1.25rem 1.1rem;
+    }
+    .course-head { display: flex; gap: .9rem; align-items: flex-start; }
+    .course-emoji { font-size: 1.9rem; line-height: 1; }
+    .course-title { font-size: 1.15rem; font-weight: 700; }
+    .course-meta { font-size: .82rem; color: var(--grey); margin-top: .25rem; display: flex; flex-wrap: wrap; gap: .25rem .9rem; }
+    .status { display: inline-block; font-size: .72rem; font-weight: 700; border-radius: 99px; padding: .2rem .65rem; margin-top: .55rem; }
+    .status.ok { background: rgba(16,185,129,.15); color: #34d399; }
+    .status.wait { background: rgba(201,168,76,.15); color: var(--gold-light); }
+    .actions { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1rem; }
+    .btn-cert {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dim)); color: var(--navy);
+      border: 0; border-radius: 8px; font: inherit; font-weight: 700; font-size: .9rem; padding: .6rem 1.1rem; cursor: pointer;
+      display: inline-flex; align-items: center; gap: .45rem;
+    }
+    .btn-line {
+      border: 1px solid var(--glass-border); color: var(--grey-light); border-radius: 8px; font-size: .85rem;
+      padding: .55rem 1rem; display: inline-flex; align-items: center; gap: .45rem; text-decoration: none;
+    }
+    .btn-line:hover { border-color: var(--gold); color: var(--white); }
+    .materials { margin-top: 1rem; border-top: 1px solid rgba(201,168,76,.12); padding-top: .85rem; }
+    .materials h3 { font-size: .8rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin-bottom: .5rem; }
+    .materials a { display: flex; align-items: center; gap: .55rem; color: var(--grey-light); text-decoration: none; padding: .4rem 0; font-size: .92rem; }
+    .materials a:hover { color: var(--white); }
+    .materials a i { color: var(--gold); width: 16px; text-align: center; }
+    .note { font-size: .88rem; color: var(--grey-light); margin-top: .8rem; }
+    .empty { text-align: center; color: var(--grey-light); padding: 1rem .5rem; }
+    .empty i { font-size: 2rem; color: var(--gold); margin-bottom: .6rem; display: block; }
+    .empty a { color: var(--gold); }
+    .foot { text-align: center; font-size: .8rem; color: var(--grey); margin-top: 2rem; }
+    .foot a { color: var(--gold); text-decoration: none; }
+    @media (max-width: 520px) {
+      .search-row { flex-direction: column; }
+      .search-row button { padding: .8rem; justify-content: center; }
+      .cert-card { padding: 1.5rem 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="cert-page">
+  <div class="cert-brand">
+    <a href="index.html"><img src="logo-elhyai.png" alt="ElhyAi Consultores" /></a>
+    <p>Certificados de cursos presenciales</p>
+  </div>
+
+  <div class="cert-card">
+    <h1>Descarga tu certificado</h1>
+    <p class="sub">Escribe tu número de cédula para ver tus cursos, descargar tu certificado y el material de apoyo.</p>
+
+    <form class="search-row" onsubmit="buscar(event)">
+      <input id="cedula" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="Número de cédula" aria-label="Número de cédula" />
+      <button id="btn-buscar" type="submit"><i class="fas fa-search"></i> Buscar</button>
+    </form>
+    <p class="hint">Si eres extranjero, escribe tu número de pasaporte.</p>
+
+    <div id="results" aria-live="polite"></div>
+  </div>
+
+  <p class="foot">
+    ¿Ya tienes un certificado y quieres comprobarlo? <a href="validar.html">Validar certificado</a> ·
+    <a href="index.html">Ver cursos</a>
+  </p>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="firebase.js"></script>
+<script src="certificado-pdf.js"></script>
+<script>
+  let FOUND = [];
+
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+  function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : '#'; }
+  function materialIcon(url) {
+    if (/youtube\.com|youtu\.be/i.test(url)) return 'fab fa-youtube';
+    if (/\.pdf(\?|$)/i.test(url)) return 'fas fa-file-pdf';
+    if (/docs\.google\.com\/presentation|\.pptx?(\?|$)/i.test(url)) return 'fas fa-file-powerpoint';
+    if (/docs\.google\.com\/spreadsheets|\.xlsx?(\?|$)/i.test(url)) return 'fas fa-file-excel';
+    return 'fas fa-link';
+  }
+
+  async function buscar(e) {
+    if (e) e.preventDefault();
+    const box = document.getElementById('results');
+    const id = ElhyFirebase.normalizeId(document.getElementById('cedula').value);
+    if (id.length < 5) {
+      box.innerHTML = `<div class="empty"><i class="fas fa-id-card"></i>Escribe un número de cédula válido.</div>`;
+      return;
+    }
+    const btn = document.getElementById('btn-buscar');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando…';
+    box.innerHTML = '';
+    try {
+      FOUND = await ElhyFirebase.findByCedula(id);
+      render(id);
+    } catch (err) {
+      console.error(err);
+      box.innerHTML = `<div class="empty"><i class="fas fa-exclamation-triangle"></i>No se pudo consultar. Revisa tu conexión e intenta nuevamente.</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-search"></i> Buscar';
+    }
+  }
+
+  function render(id) {
+    const box = document.getElementById('results');
+    if (!FOUND.length) {
+      const wa = `https://wa.me/${ElhyFirebase.WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola ElhyAI, participé en un curso presencial y no encuentro mi certificado. Mi cédula es ' + id)}`;
+      box.innerHTML = `
+        <div class="empty">
+          <i class="fas fa-search"></i>
+          No encontramos cursos presenciales con la cédula <strong>${esc(id)}</strong>.<br>
+          Verifica el número o <a href="${wa}" target="_blank" rel="noopener">escríbenos por WhatsApp</a>.
+        </div>`;
+      return;
+    }
+    const name = FOUND[0].participant.name;
+    box.innerHTML = `<p class="greet">Hola, <strong>${esc(name)}</strong> 👋</p>` + FOUND.map((r, i) => {
+      const c = r.course, p = r.participant;
+      const meta = [
+        c.hours ? `<span><i class="far fa-clock"></i> ${esc(c.hours)} horas</span>` : '',
+        c.date ? `<span><i class="far fa-calendar"></i> ${esc(c.date)}</span>` : '',
+        c.location ? `<span><i class="fas fa-map-marker-alt"></i> ${esc(c.location)}</span>` : ''
+      ].join('');
+      const ready = p.finished && r.cert;
+      const materials = (c.materials || []);
+      return `
+        <div class="course-box">
+          <div class="course-head">
+            <div class="course-emoji">${esc(c.emoji || '👥')}</div>
+            <div>
+              <div class="course-title">${esc(c.title)}</div>
+              <div class="course-meta">${meta}</div>
+              <span class="status ${ready ? 'ok' : 'wait'}">${ready ? 'Curso finalizado' : 'Inscrito · en curso'}</span>
+            </div>
+          </div>
+          ${ready ? `
+            <div class="actions">
+              <button class="btn-cert" onclick="descargar(${i}, this)"><i class="fas fa-download"></i> Descargar certificado</button>
+              <a class="btn-line" href="validar.html?code=${encodeURIComponent(r.cert.certId)}" target="_blank" rel="noopener"><i class="fas fa-shield-alt"></i> Validar</a>
+            </div>
+            ${materials.length ? `
+              <div class="materials">
+                <h3>Material de apoyo</h3>
+                ${materials.map(m => `<a href="${esc(safeUrl(m.url))}" target="_blank" rel="noopener"><i class="${materialIcon(m.url)}"></i> ${esc(m.title)}</a>`).join('')}
+              </div>` : ''}
+          ` : `<p class="note">Tu certificado y el material de apoyo estarán disponibles aquí cuando el curso sea marcado como finalizado.</p>`}
+        </div>`;
+    }).join('');
+  }
+
+  async function descargar(i, btn) {
+    const r = FOUND[i];
+    if (!r || !r.cert) return;
+    btn.disabled = true;
+    const html = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando…';
+    try {
+      await downloadCertificatePDF(r.cert);
+    } catch (err) {
+      console.error(err);
+      alert('No se pudo generar el certificado. Intenta nuevamente.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = html;
+    }
+  }
+
+  /* ?cedula=XXXX abre la búsqueda directamente */
+  document.addEventListener('DOMContentLoaded', () => {
+    const q = new URLSearchParams(location.search).get('cedula');
+    if (q) { document.getElementById('cedula').value = q; buscar(); }
+  });
+</script>
+</body>
+</html>

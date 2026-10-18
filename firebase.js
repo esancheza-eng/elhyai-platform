@@ -24,18 +24,18 @@ const WHATSAPP_NUMBER = '593989938910';
    Nombres y precios se editan desde admin.html → "Cursos y precios";
    lo que guardes ahí (nodo "catalog" en Firebase) reemplaza estos valores. */
 const COURSE_CATALOG = {
-  'ia-cero':      { title: 'Inteligencia Artificial desde Cero',  price: 49, originalPrice: 79, emoji: '🤖', category: 'IA' },
-  'chatgpt-auto': { title: 'Automatización con ChatGPT',          price: 45, originalPrice: 75, emoji: '⚡', category: 'IA' },
-  'python-ia':    { title: 'Python para Inteligencia Artificial', price: 55, originalPrice: 89, emoji: '🐍', category: 'IA' },
-  'marketing-ia': { title: 'Marketing Digital con IA',            price: 39, originalPrice: 65, emoji: '📱', category: 'Marketing' },
-  'ventas-ia':    { title: 'Ventas Digitales con IA',             price: 45, originalPrice: 70, emoji: '🎯', category: 'Marketing' },
-  'ecommerce':    { title: 'E-Commerce con IA',                   price: 49, originalPrice: 80, emoji: '🛒', category: 'Marketing' },
-  'excel-datos':  { title: 'Excel y Análisis de Datos',           price: 35, originalPrice: 55, emoji: '📊', category: 'Datos' },
-  'finanzas':     { title: 'Finanzas Personales e Inversión',     price: 35, originalPrice: 55, emoji: '💳', category: 'Datos' },
-  'google-drive': { title: 'Google Drive Profesional',            price: 25, originalPrice: 40, emoji: '💾', category: 'Herramientas' },
-  'canva-ia':     { title: 'Diseño Digital con Canva e IA',       price: 29, originalPrice: 45, emoji: '🎨', category: 'Herramientas' },
-  'productivity': { title: 'Productividad con IA',                price: 29, originalPrice: 45, emoji: '⏱️', category: 'Herramientas' },
-  'cobranza-ia':  { title: 'Cobranza Inteligente con IA',         price: 55, originalPrice: 90, emoji: '💰', category: 'Cobranza' }
+  'ia-cero':      { title: 'Inteligencia Artificial desde Cero',  price: 49, originalPrice: 79, emoji: '🤖', category: 'IA', modality: 'online' },
+  'chatgpt-auto': { title: 'Automatización con ChatGPT',          price: 45, originalPrice: 75, emoji: '⚡', category: 'IA', modality: 'online' },
+  'python-ia':    { title: 'Python para Inteligencia Artificial', price: 55, originalPrice: 89, emoji: '🐍', category: 'IA', modality: 'online' },
+  'marketing-ia': { title: 'Marketing Digital con IA',            price: 39, originalPrice: 65, emoji: '📱', category: 'Marketing', modality: 'online' },
+  'ventas-ia':    { title: 'Ventas Digitales con IA',             price: 45, originalPrice: 70, emoji: '🎯', category: 'Marketing', modality: 'online' },
+  'ecommerce':    { title: 'E-Commerce con IA',                   price: 49, originalPrice: 80, emoji: '🛒', category: 'Marketing', modality: 'online' },
+  'excel-datos':  { title: 'Excel y Análisis de Datos',           price: 35, originalPrice: 55, emoji: '📊', category: 'Datos', modality: 'online' },
+  'finanzas':     { title: 'Finanzas Personales e Inversión',     price: 35, originalPrice: 55, emoji: '💳', category: 'Datos', modality: 'online' },
+  'google-drive': { title: 'Google Drive Profesional',            price: 25, originalPrice: 40, emoji: '💾', category: 'Herramientas', modality: 'online' },
+  'canva-ia':     { title: 'Diseño Digital con Canva e IA',       price: 29, originalPrice: 45, emoji: '🎨', category: 'Herramientas', modality: 'online' },
+  'productivity': { title: 'Productividad con IA',                price: 29, originalPrice: 45, emoji: '⏱️', category: 'Herramientas', modality: 'online' },
+  'cobranza-ia':  { title: 'Cobranza Inteligente con IA',         price: 55, originalPrice: 90, emoji: '💰', category: 'Cobranza', modality: 'online' }
 };
 
 /* ── Inicializar Firebase ───────────────────────────────────── */
@@ -56,8 +56,22 @@ const catalogReady = database.ref('catalog').once('value')
   .then(snap => {
     const saved = snap.val() || {};
     Object.keys(saved).forEach(id => {
-      if (!COURSE_CATALOG[id]) return;
       const c = saved[id];
+      if (!COURSE_CATALOG[id]) {
+        /* Curso creado desde el panel admin */
+        if (!c || !c.custom) return;
+        COURSE_CATALOG[id] = {
+          title: c.title, price: c.price, originalPrice: (typeof c.originalPrice === 'number') ? c.originalPrice : null,
+          emoji: c.emoji || (c.modality === 'presencial' ? '👥' : '📘'),
+          category: c.category || 'General',
+          modality: c.modality === 'presencial' ? 'presencial' : 'online',
+          description: c.description || '', hours: c.hours || 0,
+          date: c.date || '', location: c.location || '',
+          materials: Array.isArray(c.materials) ? c.materials : (c.materials ? Object.values(c.materials) : []),
+          visible: c.visible !== false, custom: true, createdAt: c.createdAt || 0
+        };
+        return;
+      }
       if (typeof c.title === 'string' && c.title.trim()) COURSE_CATALOG[id].title = c.title.trim();
       if (typeof c.price === 'number') COURSE_CATALOG[id].price = c.price;
       COURSE_CATALOG[id].originalPrice = (typeof c.originalPrice === 'number') ? c.originalPrice : null;
@@ -68,12 +82,179 @@ const catalogReady = database.ref('catalog').once('value')
 
 /* Admin: guarda nombre, precio y precio anterior (opcional) de un curso */
 async function saveCatalogCourse(courseId, { title, price, originalPrice }) {
-  if (!COURSE_CATALOG[courseId]) throw new Error('unknown-course');
+  const course = COURSE_CATALOG[courseId];
+  if (!course) throw new Error('unknown-course');
   const data = { title: String(title).trim(), price: Number(price), updatedAt: Date.now() };
   const op = Number(originalPrice);
   if (originalPrice !== '' && originalPrice != null && op > data.price) data.originalPrice = op;
-  await database.ref(`catalog/${courseId}`).set(data);
-  Object.assign(COURSE_CATALOG[courseId], { title: data.title, price: data.price, originalPrice: data.originalPrice ?? null });
+  if (course.custom) {
+    /* curso creado por el admin: se actualizan solo estos campos */
+    await database.ref(`catalog/${courseId}`).update({ ...data, originalPrice: data.originalPrice ?? null });
+  } else {
+    await database.ref(`catalog/${courseId}`).set(data);
+  }
+  Object.assign(course, { title: data.title, price: data.price, originalPrice: data.originalPrice ?? null });
+}
+
+/* Admin: crea o edita un curso completo (online o presencial).
+   materials: [{ title, url }] — enlaces de Google Drive, YouTube, etc. */
+async function saveCustomCourse(courseId, f) {
+  const isNew = !courseId;
+  if (isNew) {
+    const slug = String(f.title).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'curso';
+    courseId = `${slug}-${Date.now().toString(36).slice(-4)}`;
+  } else if (COURSE_CATALOG[courseId] && !COURSE_CATALOG[courseId].custom) {
+    throw new Error('built-in-course');
+  }
+  const price = Number(f.price), op = Number(f.originalPrice);
+  const materials = (f.materials || [])
+    .map(m => ({ title: String(m.title || '').trim().slice(0, 120), url: String(m.url || '').trim() }))
+    .filter(m => /^https?:\/\//i.test(m.url))
+    .slice(0, 30)
+    .map(m => ({ title: m.title || 'Material de apoyo', url: m.url }));
+  const data = {
+    custom: true,
+    title: String(f.title).trim(),
+    modality: f.modality === 'presencial' ? 'presencial' : 'online',
+    category: String(f.category || 'General').trim().slice(0, 40) || 'General',
+    emoji: String(f.emoji || '').trim().slice(0, 8) || (f.modality === 'presencial' ? '👥' : '📘'),
+    description: String(f.description || '').trim().slice(0, 1500),
+    price,
+    hours: Number(f.hours) || 0,
+    date: String(f.date || '').trim().slice(0, 60),
+    location: String(f.location || '').trim().slice(0, 120),
+    materials,
+    visible: f.visible !== false,
+    updatedAt: Date.now()
+  };
+  if (f.originalPrice !== '' && f.originalPrice != null && op > price) data.originalPrice = op;
+  if (isNew) data.createdAt = Date.now();
+  if (isNew) await database.ref(`catalog/${courseId}`).set(data);
+  else await database.ref(`catalog/${courseId}`).update({ ...data, originalPrice: data.originalPrice ?? null });
+  COURSE_CATALOG[courseId] = {
+    ...(COURSE_CATALOG[courseId] || {}), ...data,
+    originalPrice: data.originalPrice ?? null,
+    createdAt: (COURSE_CATALOG[courseId] && COURSE_CATALOG[courseId].createdAt) || data.createdAt || 0
+  };
+  return courseId;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CURSOS PRESENCIALES (participantes por cédula, sin cuenta)
+══════════════════════════════════════════════════════════════ */
+
+/* Normaliza cédula / pasaporte: solo letras y números, en mayúsculas */
+function normalizeId(v) {
+  return String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+/* Valida cédula ecuatoriana (10 dígitos). Para pasaportes devuelve false. */
+function isValidCedulaEC(c) {
+  if (!/^\d{10}$/.test(c)) return false;
+  const prov = Number(c.slice(0, 2));
+  if (!((prov >= 1 && prov <= 24) || prov === 30)) return false;
+  if (Number(c[2]) >= 6) return false;
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    let n = Number(c[i]) * (i % 2 === 0 ? 2 : 1);
+    if (n > 9) n -= 9;
+    sum += n;
+  }
+  return ((10 - (sum % 10)) % 10) === Number(c[9]);
+}
+
+async function getParticipants(courseId) {
+  const snap = await database.ref(`participants/${courseId}`).once('value');
+  return snap.val() || {};
+}
+
+/* Admin: agrega o actualiza participantes [{ name, cedula, company }] */
+async function addParticipants(courseId, list) {
+  const now = Date.now();
+  const existing = await getParticipants(courseId);
+  const updates = {};
+  list.forEach(p => {
+    const id = normalizeId(p.cedula);
+    if (!id || !p.name) return;
+    const prev = existing[id] || {};
+    updates[`participants/${courseId}/${id}`] = {
+      name: String(p.name).trim().slice(0, 120),
+      cedula: id,
+      company: String(p.company || '').trim().slice(0, 120),
+      finished: !!prev.finished,
+      addedAt: prev.addedAt || now,
+      ...(prev.finishedAt ? { finishedAt: prev.finishedAt } : {}),
+      ...(prev.certId ? { certId: prev.certId } : {})
+    };
+    updates[`cedulas/${id}/${courseId}`] = true;
+  });
+  if (Object.keys(updates).length) await database.ref().update(updates);
+  return Object.keys(updates).length / 2;
+}
+
+async function removeParticipant(courseId, cedula) {
+  const id = normalizeId(cedula);
+  await database.ref().update({
+    [`participants/${courseId}/${id}`]: null,
+    [`cedulas/${id}/${courseId}`]: null
+  });
+}
+
+/* Admin: marca como finalizados y emite el certificado (una sola vez por persona y curso) */
+async function finishParticipants(courseId, cedulas) {
+  await catalogReady;
+  const course = COURSE_CATALOG[courseId] || {};
+  const parts = await getParticipants(courseId);
+  const now = Date.now();
+  const updates = {};
+  let count = 0;
+  cedulas.map(normalizeId).forEach(id => {
+    const p = parts[id];
+    if (!p || p.finished) return;
+    const certId = p.certId || newCertId();
+    updates[`participants/${courseId}/${id}/finished`] = true;
+    updates[`participants/${courseId}/${id}/finishedAt`] = now;
+    updates[`participants/${courseId}/${id}/certId`] = certId;
+    if (!p.certId) {
+      updates[`certificates/${certId}`] = {
+        certId, uid: 'presencial', courseId,
+        courseTitle: course.title || courseId,
+        studentName: p.name,
+        modality: 'presencial',
+        hours: course.hours || 0,
+        location: course.location || '',
+        courseDate: course.date || '',
+        issuedAt: now,
+        validUrl: certificateUrl(certId)
+      };
+    }
+    count++;
+  });
+  if (count) await database.ref().update(updates);
+  return count;
+}
+
+/* Admin: quita la marca de finalizado (el código de certificado se conserva) */
+async function unfinishParticipant(courseId, cedula) {
+  await database.ref(`participants/${courseId}/${normalizeId(cedula)}`).update({ finished: false, finishedAt: null });
+}
+
+/* Público: busca por cédula los cursos presenciales de una persona */
+async function findByCedula(cedula) {
+  const id = normalizeId(cedula);
+  if (!id || id.length < 5 || id.length > 20) return [];
+  await catalogReady;
+  const idx = (await database.ref(`cedulas/${id}`).once('value')).val() || {};
+  const out = [];
+  for (const courseId of Object.keys(idx)) {
+    const p = (await database.ref(`participants/${courseId}/${id}`).once('value')).val();
+    if (!p) continue;
+    let cert = null;
+    if (p.finished && p.certId) cert = await validateCertificate(p.certId);
+    out.push({ courseId, course: COURSE_CATALOG[courseId] || { title: courseId, materials: [] }, participant: p, cert });
+  }
+  return out;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -391,7 +572,7 @@ async function revokeCourse(uid, courseId) {
       ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
       "$certId": {
         ".read": true,
-        ".write": "auth != null && !data.exists() && newData.child('uid').val() === auth.uid && root.child('users').child(auth.uid).child('courses').child(newData.child('courseId').val()).exists()"
+        ".write": "(auth != null && root.child('admins').child(auth.uid).val() === true && !data.exists()) || (auth != null && !data.exists() && newData.child('uid').val() === auth.uid && root.child('users').child(auth.uid).child('courses').child(newData.child('courseId').val()).exists())"
       }
     },
     "catalog": {
@@ -403,7 +584,38 @@ async function revokeCourse(uid, courseId) {
         "price": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000" },
         "originalPrice": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000" },
         "updatedAt": { ".validate": "newData.isNumber()" },
+        "createdAt": { ".validate": "newData.isNumber()" },
+        "custom": { ".validate": "newData.isBoolean()" },
+        "visible": { ".validate": "newData.isBoolean()" },
+        "modality": { ".validate": "newData.val() === 'online' || newData.val() === 'presencial'" },
+        "category": { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "emoji": { ".validate": "newData.isString() && newData.val().length <= 8" },
+        "description": { ".validate": "newData.isString() && newData.val().length <= 1500" },
+        "hours": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000" },
+        "date": { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "location": { ".validate": "newData.isString() && newData.val().length <= 120" },
+        "materials": {
+          "$i": {
+            "title": { ".validate": "newData.isString() && newData.val().length <= 120" },
+            "url": { ".validate": "newData.isString() && newData.val().matches(/^https?:\\/\\//) && newData.val().length <= 500" },
+            "$other": { ".validate": false }
+          }
+        },
         "$other": { ".validate": false }
+      }
+    },
+    "participants": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "$courseId": {
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        "$cedula": { ".read": true }
+      }
+    },
+    "cedulas": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "$cedula": {
+        ".read": true,
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
       }
     },
     "enrollments": {
@@ -420,7 +632,9 @@ async function revokeCourse(uid, courseId) {
 ══════════════════════════════════════════════════════════════ */
 
 window.ElhyFirebase = {
-  auth, database, SITE_URL, WHATSAPP_NUMBER, COURSE_CATALOG, catalogReady, saveCatalogCourse,
+  auth, database, SITE_URL, WHATSAPP_NUMBER, COURSE_CATALOG, catalogReady, saveCatalogCourse, saveCustomCourse,
+  normalizeId, isValidCedulaEC, getParticipants, addParticipants, removeParticipant,
+  finishParticipants, unfinishParticipant, findByCedula,
   registerUser, loginUser, loginWithGoogle, logoutUser,
   resetPassword, onAuthStateChanged,
   ensureUserProfile, getUserProfile, updateUserProfile,

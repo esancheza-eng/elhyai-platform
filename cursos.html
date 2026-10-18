@@ -374,6 +374,7 @@
     .badge-nuevo    { background: var(--gold); color: var(--navy); }
     .badge-popular  { background: rgba(32,96,192,0.8); color: white; border: 1px solid var(--blue-glow); }
     .badge-oferta   { background: rgba(220,50,50,0.85); color: white; }
+    .badge-presencial { background: rgba(201,146,26,0.9); color: #0a1628; }
 
     .course-thumb {
       position: relative;
@@ -1303,7 +1304,7 @@ function stars(r) {
 
 function badgeHtml(badge) {
   if (!badge) return '';
-  const labels = { nuevo: 'Nuevo', popular: 'Popular', oferta: 'Oferta' };
+  const labels = { nuevo: 'Nuevo', popular: 'Popular', oferta: 'Oferta', presencial: 'Presencial' };
   return `<span class="course-badge badge-${badge}">${labels[badge]}</span>`;
 }
 
@@ -1372,15 +1373,16 @@ function renderCatalog() {
         </div>
         <p class="course-desc">${c.desc}</p>
         <div class="course-meta">
-          <span class="meta-item"><i class="fas fa-clock"></i>${c.duration}</span>
-          <span class="meta-item"><i class="fas fa-layer-group"></i>${c.modules} módulos</span>
-          <span class="meta-item"><i class="fas fa-signal"></i>${levelLabel(c.level)}</span>
+          ${c.duration ? `<span class="meta-item"><i class="fas fa-clock"></i>${c.duration}</span>` : ''}
+          ${c.modality === 'presencial'
+            ? `${c.date ? `<span class="meta-item"><i class="far fa-calendar"></i>${c.date}</span>` : ''}${c.location ? `<span class="meta-item"><i class="fas fa-map-marker-alt"></i>${c.location}</span>` : ''}`
+            : `${c.modules ? `<span class="meta-item"><i class="fas fa-layer-group"></i>${c.modules} módulos</span>` : ''}<span class="meta-item"><i class="fas fa-signal"></i>${levelLabel(c.level)}</span>`}
         </div>
-        <div class="course-rating">
+        ${c.rating ? `<div class="course-rating">
           <div class="stars-display">${stars(c.rating)}</div>
           <span class="rating-score">${c.rating}</span>
           <span class="rating-count">(${c.reviews})</span>
-        </div>
+        </div>` : ''}
         ${c.enrolled ? `<div class="enrollment-bar">
           <div class="enrollment-label"><span>Progreso</span><span>${Math.floor(Math.random()*80)+10}%</span></div>
           <div class="bar-track"><div class="bar-fill" style="width:${Math.floor(Math.random()*80)+10}%"></div></div>
@@ -1395,7 +1397,9 @@ function renderCatalog() {
             <button class="btn-wishlist" onclick="toggleWishlist(this)" title="Favoritos"><i class="far fa-heart"></i></button>
             ${c.enrolled
               ? `<button class="btn-buy enrolled" onclick="location.href='dashboard.html'"><i class="fas fa-play"></i> Continuar</button>`
-              : `<button class="btn-buy" onclick="handleBuy('${c.id}')"><i class="fas fa-shopping-cart"></i> Comprar</button>`
+              : c.modality === 'presencial'
+                ? `<button class="btn-buy" onclick="handleBuy('${c.id}')"><i class="fab fa-whatsapp"></i> Solicitar</button>`
+                : `<button class="btn-buy" onclick="handleBuy('${c.id}')"><i class="fas fa-shopping-cart"></i> Comprar</button>`
             }
           </div>
         </div>
@@ -1415,14 +1419,24 @@ function openDrawer(id) {
     <p class="drawer-desc">${c.desc}</p>
     <div class="drawer-stats">
       <div class="drawer-stat"><div class="drawer-stat-val">${c.duration}</div><div class="drawer-stat-lbl">Duración</div></div>
-      <div class="drawer-stat"><div class="drawer-stat-val">${c.modules}</div><div class="drawer-stat-lbl">Módulos</div></div>
-      <div class="drawer-stat"><div class="drawer-stat-val">${c.rating}★</div><div class="drawer-stat-lbl">Calificación</div></div>
+      ${c.custom
+        ? `<div class="drawer-stat"><div class="drawer-stat-val">${c.modality === 'presencial' ? 'Presencial' : 'Online'}</div><div class="drawer-stat-lbl">Modalidad</div></div>
+           <div class="drawer-stat"><div class="drawer-stat-val">$${c.price}</div><div class="drawer-stat-lbl">Precio</div></div>`
+        : `<div class="drawer-stat"><div class="drawer-stat-val">${c.modules}</div><div class="drawer-stat-lbl">Módulos</div></div>
+      <div class="drawer-stat"><div class="drawer-stat-val">${c.rating}★</div><div class="drawer-stat-lbl">Calificación</div></div>`}
     </div>
     <div class="drawer-section-title"><i class="fas fa-check-circle"></i> ¿Qué incluye?</div>
     <div class="drawer-includes">
       ${c.includes.map(i => `<div class="drawer-include-item"><i class="fas fa-check"></i>${i}</div>`).join('')}
     </div>
-    <div class="drawer-section-title"><i class="fas fa-list-ul"></i> Contenido del curso</div>
+    ${c.modality === 'presencial' ? `
+    <div class="drawer-section-title"><i class="fas fa-map-marker-alt"></i> Detalles</div>
+    <div class="module-list">
+      ${c.date ? `<div class="module-item"><div class="module-num"><i class="far fa-calendar"></i></div><span>${c.date}</span></div>` : ''}
+      ${c.location ? `<div class="module-item"><div class="module-num"><i class="fas fa-map-marker-alt"></i></div><span>${c.location}</span></div>` : ''}
+      <div class="module-item"><div class="module-num"><i class="fas fa-building"></i></div><span>Lo dictamos en las instalaciones de tu empresa</span></div>
+    </div>` : ''}
+    ${c.modulesDetail.length ? `<div class="drawer-section-title"><i class="fas fa-list-ul"></i> Contenido del curso</div>` : ''}
     <div class="module-list">
       ${c.modulesDetail.map((m,i) => `
         <div class="module-item">
@@ -1437,14 +1451,16 @@ function openDrawer(id) {
         <div class="drawer-price">$${c.price} ${c.originalPrice > c.price ? `<small>$${c.originalPrice}</small>` : ''}</div>
         ${c.originalPrice > c.price ? `<div style="color:var(--gold);font-size:.78rem;margin-top:.2rem;">Ahorra ${discount(c.originalPrice,c.price)}%</div>` : ''}
       </div>
-      <div class="course-rating" style="margin:0">
+      ${c.rating ? `<div class="course-rating" style="margin:0">
         <div class="stars-display">${stars(c.rating)}</div>
         <span class="rating-score">${c.rating}</span>
         <span class="rating-count">(${c.reviews} reseñas)</span>
-      </div>
+      </div>` : ''}
     </div>
     <button class="btn-enroll" onclick="handleBuy('${c.id}')">
-      <i class="fas fa-shopping-cart"></i> Inscribirme por $${c.price}
+      ${c.modality === 'presencial'
+        ? `<i class="fab fa-whatsapp"></i> Solicitar para mi empresa · $${c.price}`
+        : `<i class="fas fa-shopping-cart"></i> Inscribirme por $${c.price}`}
     </button>
     <p style="text-align:center;color:var(--grey);font-size:.78rem;margin-top:.75rem;">
       <i class="fas fa-shield-alt" style="color:var(--gold)"></i> Garantía de satisfacción 30 días
@@ -1529,6 +1545,12 @@ function toggleWishlist(btn) {
 }
 
 async function handleBuy(id) {
+  const cat = ElhyFirebase.COURSE_CATALOG[id];
+  if (cat && cat.modality === 'presencial') {
+    const msg = `Hola ElhyAI 👋, me interesa el curso presencial *${cat.title}*` + (cat.date ? ` (${cat.date})` : '') + `. ¿Me pueden enviar información y cotización?`;
+    window.open(`https://wa.me/${ElhyFirebase.WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+    return;
+  }
   const user = ElhyFirebase.auth.currentUser;
   if (!user) {
     /* Se retoma la solicitud en el dashboard después de iniciar sesión */
@@ -1576,6 +1598,26 @@ document.addEventListener('DOMContentLoaded', () => {
       c.title = k.title;
       c.price = k.price;
       c.originalPrice = k.originalPrice;
+    });
+    /* Cursos creados desde el panel admin */
+    Object.entries(cat).forEach(([id, k]) => {
+      if (!k.custom || k.visible === false || CATALOG.some(c => c.id === id)) return;
+      const pres = k.modality === 'presencial';
+      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='340'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#1e3a5f'/><stop offset='1' stop-color='#0a1628'/></linearGradient></defs><rect width='600' height='340' fill='url(#g)'/><text x='300' y='200' font-size='120' text-anchor='middle'>${k.emoji || '📘'}</text></svg>`;
+      CATALOG.unshift({
+        id, custom: true, modality: k.modality, emoji: k.emoji || '📘',
+        title: k.title, category: pres ? 'presencial' : 'otros',
+        desc: k.description || '', price: k.price, originalPrice: k.originalPrice,
+        duration: k.hours ? k.hours + 'h' : '', modules: 0, level: pres ? 'Presencial' : 'Online',
+        rating: 0, reviews: 0, badge: pres ? 'presencial' : null, enrolled: false,
+        img: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg),
+        instructor: 'Master Elhy Christian Sánchez Arreaga',
+        includes: pres
+          ? ['Capacitación presencial', 'Certificado con código QR', 'Material de apoyo digital', 'Descarga del certificado con tu cédula']
+          : ['Curso online', 'Certificado con código QR', 'Material de apoyo digital', 'Soporte por WhatsApp'],
+        modulesDetail: [], durHours: k.hours || 1,
+        date: k.date || '', location: k.location || ''
+      });
     });
     PRICE_MAX = Math.max(10, Math.ceil(Math.max(...CATALOG.map(c => c.price)) / 10) * 10);
     maxPrice = PRICE_MAX;

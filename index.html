@@ -339,6 +339,7 @@
           <li><a href="registro.html">Registrarse gratis</a></li>
           <li><a href="dashboard.html">Mi panel</a></li>
           <li><a href="validar.html">Verificar certificado</a></li>
+          <li><a href="certificado.html">Certificado de curso presencial</a></li>
         </ul>
       </div>
       <div>
@@ -457,17 +458,18 @@ function renderCourses(filter=''){
       </div>
       <div class="course-body">
         <div class="course-title">${c.title}</div>
-        <div class="course-rating-row">
+        ${c.rating ? `<div class="course-rating-row">
           <span class="cstars">★★★★★</span>
           <span class="cscore">${c.rating}</span>
           <span class="ccnt">(${c.reviews} reseñas)</span>
-        </div>
+        </div>` : ''}
         <div class="course-meta-row">
-          <span><i class="fas fa-clock"></i>${c.duration}</span>
-          <span><i class="fas fa-layer-group"></i>${c.modules} módulos</span>
-          <span><i class="fas fa-signal"></i>${c.level}</span>
+          ${c.duration ? `<span><i class="fas fa-clock"></i>${c.duration}</span>` : ''}
+          ${c.modality === 'presencial'
+            ? `${c.date ? `<span><i class="far fa-calendar"></i>${c.date}</span>` : ''}${c.location ? `<span><i class="fas fa-map-marker-alt"></i>${c.location}</span>` : ''}`
+            : `${c.modules ? `<span><i class="fas fa-layer-group"></i>${c.modules} módulos</span>` : ''}<span><i class="fas fa-signal"></i>${c.level}</span>`}
         </div>
-        <div class="course-type"><span>Curso online</span><span style="color:var(--accent);font-weight:600">Ver detalles →</span></div>
+        <div class="course-type"><span>${c.modality === 'presencial' ? 'Curso presencial' : 'Curso online'}</span><span style="color:var(--accent);font-weight:600">Ver detalles →</span></div>
       </div>
     </div>`;
   }).join('');
@@ -487,7 +489,9 @@ function openModal(id){
   modalCourseId=id;
   const cat=ElhyFirebase.COURSE_CATALOG[id];
   const eb=document.querySelector('.btn-enroll-m');
-  if(eb)eb.innerHTML='<i class="fas fa-graduation-cap"></i> Inscribirme'+(cat?' · $'+cat.price:'');
+  if(eb)eb.innerHTML=cat&&cat.modality==='presencial'
+    ?'<i class="fab fa-whatsapp"></i> Solicitar para mi empresa · $'+cat.price
+    :'<i class="fas fa-graduation-cap"></i> Inscribirme'+(cat?' · $'+cat.price:'');
   document.getElementById('m-cat').textContent=c.emoji+' '+c.category.toUpperCase()+' · '+c.level;
   document.getElementById('m-title').textContent=c.title;
   document.getElementById('m-desc').textContent=c.desc;
@@ -495,7 +499,26 @@ function openModal(id){
   document.getElementById('m-mods').textContent=c.modules;
   document.getElementById('m-rat').textContent=c.rating+'★';
   document.getElementById('m-inc').innerHTML=c.includes.map(i=>`<div class="minclude"><i class="fas fa-check"></i>${i}</div>`).join('');
-  document.getElementById('m-mods-list').innerHTML=c.modulesDetail.map((m,i)=>`<div class="mmodule"><div class="mnum">${i+1}</div><span>${m}</span><span class="mdur">${Math.floor(parseInt(c.duration)*60/c.modules)}min</span></div>`).join('');
+  /* etiquetas de las 3 cifras según el tipo de curso */
+  const lbl=(elId,t)=>{const e=document.getElementById(elId).nextElementSibling;if(e)e.textContent=t;};
+  if(c.custom){
+    const pres=c.modality==='presencial';
+    document.getElementById('m-cat').textContent=c.emoji+' '+(pres?'PRESENCIAL':'ONLINE');
+    document.getElementById('m-dur').textContent=c.hours?c.hours+' h':'—';
+    document.getElementById('m-mods').textContent=pres?(c.date||'Por definir'):'Online';
+    document.getElementById('m-rat').textContent=cat?('$'+cat.price):'—';
+    lbl('m-dur','Duración');lbl('m-mods',pres?'Fecha':'Modalidad');lbl('m-rat','Precio');
+    document.getElementById('m-mods-list').previousElementSibling.innerHTML='<i class="fas fa-info-circle"></i> Detalles';
+    document.getElementById('m-mods-list').innerHTML=pres
+      ?`<div class="mmodule"><div class="mnum"><i class="fas fa-map-marker-alt"></i></div><span>${c.location||'Lugar por confirmar'}</span></div>
+        <div class="mmodule"><div class="mnum"><i class="fas fa-building"></i></div><span>Disponible para empresas e instituciones: lo dictamos en tus instalaciones</span></div>
+        <div class="mmodule"><div class="mnum"><i class="fas fa-certificate"></i></div><span>Al finalizar, cada participante descarga su certificado con su cédula</span></div>`
+      :'<div class="mmodule"><span>Contenido en preparación</span></div>';
+  }else{
+    lbl('m-dur','Duración');lbl('m-mods','Módulos');lbl('m-rat','Calificación');
+    document.getElementById('m-mods-list').previousElementSibling.innerHTML='<i class="fas fa-list-ul"></i> Contenido del curso';
+  }
+  if(!c.custom)document.getElementById('m-mods-list').innerHTML=c.modulesDetail.map((m,i)=>`<div class="mmodule"><div class="mnum">${i+1}</div><span>${m}</span><span class="mdur">${Math.floor(parseInt(c.duration)*60/c.modules)}min</span></div>`).join('');
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -506,6 +529,13 @@ function closeModal(e){
 }
 async function enrollNow(){
   if(!modalCourseId)return;
+  const cat=ElhyFirebase.COURSE_CATALOG[modalCourseId];
+  if(cat&&cat.modality==='presencial'){
+    /* Los presenciales se coordinan por WhatsApp (empresas / grupos) */
+    const msg=`Hola ElhyAI 👋, me interesa el curso presencial *${cat.title}*`+(cat.date?` (${cat.date})`:'')+`. ¿Me pueden enviar información y cotización?`;
+    window.open(`https://wa.me/${ElhyFirebase.WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`,'_blank','noopener');
+    return;
+  }
   const user=ElhyFirebase.auth.currentUser;
   if(!user){
     /* Se retoma la solicitud en el dashboard después de registrarse */
@@ -551,7 +581,33 @@ ElhyFirebase.onAuthStateChanged(user=>{
 
 /* Nombres editados desde el panel admin */
 function applyCatalog(){
-  COURSES.forEach(c=>{const k=ElhyFirebase.COURSE_CATALOG[c.id];if(k)c.title=k.title;});
+  const CAT=ElhyFirebase.COURSE_CATALOG;
+  COURSES.forEach(c=>{const k=CAT[c.id];if(k)c.title=k.title;});
+  /* Cursos creados desde el panel admin */
+  Object.entries(CAT).forEach(([id,k])=>{
+    if(!k.custom||k.visible===false||COURSES.some(c=>c.id===id))return;
+    const pres=k.modality==='presencial';
+    COURSES.unshift({
+      id,custom:true,modality:k.modality,emoji:k.emoji,category:pres?'presencial':'otros',
+      title:k.title,desc:k.description||'',duration:k.hours?k.hours+'h':'',
+      modules:0,level:pres?'Presencial':'Online',rating:null,reviews:0,
+      date:k.date||'',location:k.location||'',hours:k.hours||0,
+      includes:pres
+        ?['Capacitación presencial','Certificado con código QR','Material de apoyo digital','Descarga del certificado con tu cédula']
+        :['Curso online','Certificado con código QR','Material de apoyo digital','Soporte por WhatsApp'],
+      modulesDetail:[]
+    });
+  });
+  /* Filtro "Presenciales" si hay alguno */
+  if(COURSES.some(c=>c.modality==='presencial')&&!document.getElementById('chip-presencial')){
+    const last=[...document.querySelectorAll('.cat-chip')].pop();
+    if(last){
+      const b=document.createElement('button');
+      b.className='cat-chip';b.id='chip-presencial';b.textContent='Presenciales';
+      b.onclick=function(){filterByCategory('presencial',this);};
+      last.after(b);
+    }
+  }
 }
 
 document.addEventListener('DOMContentLoaded',()=>{

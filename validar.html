@@ -544,6 +544,9 @@ function toViewModel(d) {
     credentialId: esc(d.certId),
     instructor:   'Master Elhy Christian Sánchez Arreaga',
     grade:        'Aprobado',
+    platform:     d.modality === 'presencial'
+                    ? esc(['Presencial', d.hours ? d.hours + ' horas' : '', d.location].filter(Boolean).join(' · '))
+                    : 'Online · ElhyAI Academy',
     duration:     '',
     modules:      ''
   };
@@ -587,8 +590,8 @@ function showValid(cert) {
             <span class="cert-detail-value">${cert.instructor}</span>
           </div>
           <div class="cert-detail">
-            <span class="cert-detail-label">Plataforma</span>
-            <span class="cert-detail-value">ElhyAI Academy</span>
+            <span class="cert-detail-label">Modalidad</span>
+            <span class="cert-detail-value">${cert.platform}</span>
           </div>
           <div class="cert-detail">
             <span class="cert-detail-label">ID de Credencial</span>
