@@ -508,17 +508,21 @@ function openModal(id){
     document.getElementById('m-mods').textContent=pres?(c.date||'Por definir'):'Online';
     document.getElementById('m-rat').textContent=cat?('$'+cat.price):'—';
     lbl('m-dur','Duración');lbl('m-mods',pres?'Fecha':'Modalidad');lbl('m-rat','Precio');
-    document.getElementById('m-mods-list').previousElementSibling.innerHTML='<i class="fas fa-info-circle"></i> Detalles';
+    document.getElementById('m-mods-list').previousElementSibling.innerHTML=pres?'<i class="fas fa-info-circle"></i> Detalles':'<i class="fas fa-list-ul"></i> Contenido del curso';
     document.getElementById('m-mods-list').innerHTML=pres
       ?`<div class="mmodule"><div class="mnum"><i class="fas fa-map-marker-alt"></i></div><span>${c.location||'Lugar por confirmar'}</span></div>
         <div class="mmodule"><div class="mnum"><i class="fas fa-building"></i></div><span>Disponible para empresas e instituciones: lo dictamos en tus instalaciones</span></div>
         <div class="mmodule"><div class="mnum"><i class="fas fa-certificate"></i></div><span>Al finalizar, cada participante descarga su certificado con su cédula</span></div>`
-      :'<div class="mmodule"><span>Contenido en preparación</span></div>';
+      :(c.modulesDetail.length
+        ?c.modulesDetail.map((m,i)=>`<div class="mmodule"><div class="mnum">${i+1}</div><span>${m}</span></div>`).join('')
+        :'<div class="mmodule"><span>Contenido en preparación</span></div>');
   }else{
     lbl('m-dur','Duración');lbl('m-mods','Módulos');lbl('m-rat','Calificación');
     document.getElementById('m-mods-list').previousElementSibling.innerHTML='<i class="fas fa-list-ul"></i> Contenido del curso';
   }
-  if(!c.custom)document.getElementById('m-mods-list').innerHTML=c.modulesDetail.map((m,i)=>`<div class="mmodule"><div class="mnum">${i+1}</div><span>${m}</span><span class="mdur">${Math.floor(parseInt(c.duration)*60/c.modules)}min</span></div>`).join('');
+  if(!c.custom)document.getElementById('m-mods-list').innerHTML=(ElhyFirebase.COURSE_CATALOG[c.id]||{}).outline?.length
+    ?c.modulesDetail.map((m,i)=>`<div class="mmodule"><div class="mnum">${i+1}</div><span>${m}</span></div>`).join('')
+    :c.modulesDetail.map((m,i)=>`<div class="mmodule"><div class="mnum">${i+1}</div><span>${m}</span><span class="mdur">${Math.floor(parseInt(c.duration)*60/c.modules)}min</span></div>`).join('');
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -582,7 +586,9 @@ ElhyFirebase.onAuthStateChanged(user=>{
 /* Nombres editados desde el panel admin */
 function applyCatalog(){
   const CAT=ElhyFirebase.COURSE_CATALOG;
-  COURSES.forEach(c=>{const k=CAT[c.id];if(k)c.title=k.title;});
+  COURSES.forEach(c=>{const k=CAT[c.id];if(!k)return;c.title=k.title;
+    if(k.outline&&k.outline.length){c.modulesDetail=k.outline;c.modules=k.outline.length;}
+    if(k.hours)c.duration=k.hours+'h';});
   /* Cursos creados desde el panel admin */
   Object.entries(CAT).forEach(([id,k])=>{
     if(!k.custom||k.visible===false||COURSES.some(c=>c.id===id))return;
@@ -590,12 +596,12 @@ function applyCatalog(){
     COURSES.unshift({
       id,custom:true,modality:k.modality,emoji:k.emoji,category:pres?'presencial':'otros',
       title:k.title,desc:k.description||'',duration:k.hours?k.hours+'h':'',
-      modules:0,level:pres?'Presencial':'Online',rating:null,reviews:0,
+      modules:(k.outline||[]).length,level:pres?'Presencial':'Online',rating:null,reviews:0,
       date:k.date||'',location:k.location||'',hours:k.hours||0,
       includes:pres
         ?['Capacitación presencial','Certificado con código QR','Material de apoyo digital','Descarga del certificado con tu cédula']
         :['Curso online','Certificado con código QR','Material de apoyo digital','Soporte por WhatsApp'],
-      modulesDetail:[]
+      modulesDetail:pres?[]:(k.outline||[])
     });
   });
   /* Filtro "Presenciales" si hay alguno */

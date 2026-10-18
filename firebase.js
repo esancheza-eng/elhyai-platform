@@ -68,10 +68,13 @@ const catalogReady = database.ref('catalog').once('value')
           description: c.description || '', hours: c.hours || 0,
           date: c.date || '', location: c.location || '',
           materials: Array.isArray(c.materials) ? c.materials : (c.materials ? Object.values(c.materials) : []),
-          visible: c.visible !== false, custom: true, createdAt: c.createdAt || 0
+          visible: c.visible !== false, custom: true, createdAt: c.createdAt || 0,
+          outline: c.outline ? Object.values(c.outline) : []
         };
         return;
       }
+      if (Array.isArray(c.outline) || (c.outline && typeof c.outline === 'object')) COURSE_CATALOG[id].outline = Object.values(c.outline);
+      if (typeof c.hours === 'number' && c.hours > 0) COURSE_CATALOG[id].hours = c.hours;
       if (typeof c.title === 'string' && c.title.trim()) COURSE_CATALOG[id].title = c.title.trim();
       if (typeof c.price === 'number') COURSE_CATALOG[id].price = c.price;
       COURSE_CATALOG[id].originalPrice = (typeof c.originalPrice === 'number') ? c.originalPrice : null;
@@ -87,12 +90,8 @@ async function saveCatalogCourse(courseId, { title, price, originalPrice }) {
   const data = { title: String(title).trim(), price: Number(price), updatedAt: Date.now() };
   const op = Number(originalPrice);
   if (originalPrice !== '' && originalPrice != null && op > data.price) data.originalPrice = op;
-  if (course.custom) {
-    /* curso creado por el admin: se actualizan solo estos campos */
-    await database.ref(`catalog/${courseId}`).update({ ...data, originalPrice: data.originalPrice ?? null });
-  } else {
-    await database.ref(`catalog/${courseId}`).set(data);
-  }
+  /* se actualizan solo estos campos (se conservan temario y demás datos) */
+  await database.ref(`catalog/${courseId}`).update({ ...data, originalPrice: data.originalPrice ?? null });
   Object.assign(course, { title: data.title, price: data.price, originalPrice: data.originalPrice ?? null });
 }
 
@@ -138,6 +137,71 @@ async function saveCustomCourse(courseId, f) {
     createdAt: (COURSE_CATALOG[courseId] && COURSE_CATALOG[courseId].createdAt) || data.createdAt || 0
   };
   return courseId;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   CONTENIDO DE CURSOS ONLINE (videos de YouTube)
+   Se guarda en content/{curso}; solo lo leen el admin y los alumnos inscritos.
+══════════════════════════════════════════════════════════════ */
+
+/* Extrae el ID de un video desde cualquier enlace de YouTube (o el ID solo) */
+function parseYouTubeId(input) {
+  const v = String(input || '').trim();
+  if (/^[A-Za-z0-9_-]{11}$/.test(v)) return v;
+  const m = v.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/))([A-Za-z0-9_-]{11})/i);
+  return m ? m[1] : null;
+}
+
+function youTubeEmbedUrl(id) {
+  return `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1`;
+}
+
+async function getCourseContent(courseId) {
+  try {
+    const snap = await database.ref(`content/${courseId}`).once('value');
+    const c = snap.val();
+    if (!c || !c.modules) return null;
+    const modules = Object.values(c.modules).map(m => ({
+      title: m.title || 'Módulo',
+      lessons: Object.values(m.lessons || {}).map(l => ({ id: l.id, title: l.title, video: l.video, duration: l.duration || '' }))
+    })).filter(m => m.lessons.length);
+    return modules.length ? { modules, updatedAt: c.updatedAt || 0 } : null;
+  } catch (e) {
+    return null;   // sin permiso (no inscrito) o sin conexión
+  }
+}
+
+/* Admin: guarda el temario y los videos. modules: [{ title, lessons: [{ title, video, duration }] }]
+   Los IDs de lección son l1, l2, l3… en orden, para conservar el progreso de los alumnos. */
+async function saveCourseContent(courseId, modules) {
+  let n = 0;
+  const clean = modules.map(m => ({
+    title: String(m.title || 'Módulo').trim().slice(0, 150),
+    lessons: (m.lessons || []).map(l => ({
+      id: `l${++n}`,
+      title: String(l.title || `Lección ${n}`).trim().slice(0, 150),
+      video: l.video,
+      duration: String(l.duration || '').trim().slice(0, 20)
+    }))
+  })).filter(m => m.lessons.length);
+  const minutes = clean.reduce((a, m) => a + m.lessons.reduce((b, l) => b + (parseInt(l.duration, 10) || 0), 0), 0);
+  const outline = clean.map(m => `${m.title} · ${m.lessons.length} ${m.lessons.length === 1 ? 'lección' : 'lecciones'}`.slice(0, 160));
+  const updates = {
+    [`content/${courseId}`]: clean.length ? { modules: clean, updatedAt: Date.now() } : null,
+    [`catalog/${courseId}/outline`]: outline.length ? outline : null
+  };
+  /* si el catálogo no tiene datos de un curso base, se guardan título y precio para cumplir las reglas */
+  const c = COURSE_CATALOG[courseId];
+  const exists = (await database.ref(`catalog/${courseId}/title`).once('value')).exists();
+  if (!exists && c) {
+    updates[`catalog/${courseId}/title`] = c.title;
+    updates[`catalog/${courseId}/price`] = c.price;
+    updates[`catalog/${courseId}/updatedAt`] = Date.now();
+  }
+  await database.ref().update(updates);
+  if (c) c.outline = outline;
+  return { lessons: n, minutes };
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -594,6 +658,9 @@ async function revokeCourse(uid, courseId) {
         "hours": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000" },
         "date": { ".validate": "newData.isString() && newData.val().length <= 60" },
         "location": { ".validate": "newData.isString() && newData.val().length <= 120" },
+        "outline": {
+          "$i": { ".validate": "newData.isString() && newData.val().length <= 160" }
+        },
         "materials": {
           "$i": {
             "title": { ".validate": "newData.isString() && newData.val().length <= 120" },
@@ -601,6 +668,31 @@ async function revokeCourse(uid, courseId) {
             "$other": { ".validate": false }
           }
         },
+        "$other": { ".validate": false }
+      }
+    },
+    "content": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "$courseId": {
+        ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || root.child('users').child(auth.uid).child('courses').child($courseId).exists())",
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        "modules": {
+          "$m": {
+            "title": { ".validate": "newData.isString() && newData.val().length <= 150" },
+            "lessons": {
+              "$l": {
+                ".validate": "newData.hasChildren(['id', 'title', 'video'])",
+                "id": { ".validate": "newData.isString() && newData.val().length <= 10" },
+                "title": { ".validate": "newData.isString() && newData.val().length <= 150" },
+                "video": { ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{11}$/)" },
+                "duration": { ".validate": "newData.isString() && newData.val().length <= 20" },
+                "$other": { ".validate": false }
+              }
+            },
+            "$other": { ".validate": false }
+          }
+        },
+        "updatedAt": { ".validate": "newData.isNumber()" },
         "$other": { ".validate": false }
       }
     },
@@ -635,6 +727,7 @@ window.ElhyFirebase = {
   auth, database, SITE_URL, WHATSAPP_NUMBER, COURSE_CATALOG, catalogReady, saveCatalogCourse, saveCustomCourse,
   normalizeId, isValidCedulaEC, getParticipants, addParticipants, removeParticipant,
   finishParticipants, unfinishParticipant, findByCedula,
+  parseYouTubeId, youTubeEmbedUrl, getCourseContent, saveCourseContent,
   registerUser, loginUser, loginWithGoogle, logoutUser,
   resetPassword, onAuthStateChanged,
   ensureUserProfile, getUserProfile, updateUserProfile,

@@ -1598,6 +1598,8 @@ document.addEventListener('DOMContentLoaded', () => {
       c.title = k.title;
       c.price = k.price;
       c.originalPrice = k.originalPrice;
+      if (k.outline && k.outline.length) { c.modulesDetail = k.outline; c.modules = k.outline.length; }
+      if (k.hours) { c.duration = k.hours + 'h'; c.durHours = k.hours; }
     });
     /* Cursos creados desde el panel admin */
     Object.entries(cat).forEach(([id, k]) => {
@@ -1608,14 +1610,14 @@ document.addEventListener('DOMContentLoaded', () => {
         id, custom: true, modality: k.modality, emoji: k.emoji || '📘',
         title: k.title, category: pres ? 'presencial' : 'otros',
         desc: k.description || '', price: k.price, originalPrice: k.originalPrice,
-        duration: k.hours ? k.hours + 'h' : '', modules: 0, level: pres ? 'Presencial' : 'Online',
+        duration: k.hours ? k.hours + 'h' : '', modules: pres ? 0 : (k.outline || []).length, level: pres ? 'Presencial' : 'Online',
         rating: 0, reviews: 0, badge: pres ? 'presencial' : null, enrolled: false,
         img: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg),
         instructor: 'Master Elhy Christian Sánchez Arreaga',
         includes: pres
           ? ['Capacitación presencial', 'Certificado con código QR', 'Material de apoyo digital', 'Descarga del certificado con tu cédula']
           : ['Curso online', 'Certificado con código QR', 'Material de apoyo digital', 'Soporte por WhatsApp'],
-        modulesDetail: [], durHours: k.hours || 1,
+        modulesDetail: pres ? [] : (k.outline || []), durHours: k.hours || 1,
         date: k.date || '', location: k.location || ''
       });
     });

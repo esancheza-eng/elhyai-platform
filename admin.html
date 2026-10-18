@@ -239,6 +239,23 @@
           <button class="btn btn-gold btn-sm" id="cf-save" onclick="submitCourseForm()"><i class="fa-solid fa-floppy-disk"></i> Guardar curso</button>
         </div>
       </div>
+      <!-- Editor de videos (cursos online) -->
+      <div id="content-form" class="glass" style="display:none;padding:1.5rem;border-radius:var(--radius);margin-bottom:1.5rem">
+        <h3 id="ct-heading" style="font-size:1.1rem;margin-bottom:.35rem">Videos del curso</h3>
+        <p class="muted" style="margin-bottom:.8rem;line-height:1.6">
+          Escribe un <strong>módulo</strong> por línea empezando con <code>#</code> y debajo sus <strong>lecciones</strong>:
+          <code>Título | enlace de YouTube | duración</code> (la duración es opcional).<br>
+          En YouTube sube los videos como <strong>No listado</strong>: así solo los ven tus alumnos inscritos.
+        </p>
+        <textarea class="cat-input" id="ct-text" rows="14" spellcheck="false" style="font-family:ui-monospace,Consolas,monospace;font-size:.82rem;line-height:1.6"
+          placeholder="# Módulo 1: Introducción&#10;Bienvenida al curso | https://youtu.be/XXXXXXXXXXX | 5 min&#10;¿Qué es la IA? | https://www.youtube.com/watch?v=XXXXXXXXXXX | 15 min&#10;&#10;# Módulo 2: Herramientas&#10;ChatGPT paso a paso | https://youtu.be/XXXXXXXXXXX | 20 min"></textarea>
+        <div id="ct-preview" class="muted" style="margin-top:.6rem"></div>
+        <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:1rem">
+          <button class="btn btn-outline btn-sm" onclick="closeContentForm()">Cancelar</button>
+          <button class="btn btn-gold btn-sm" id="ct-save" onclick="submitContentForm()"><i class="fa-solid fa-floppy-disk"></i> Guardar videos</button>
+        </div>
+      </div>
+
       <div class="glass table-wrap" style="padding:1.5rem;border-radius:var(--radius)">
         <table class="admin-table">
           <thead><tr><th></th><th>Nombre del curso</th><th>Precio ($)</th><th>Precio anterior ($)</th><th>Alumnos</th><th></th></tr></thead>
@@ -606,6 +623,7 @@
           <div class="row-actions">
             <button class="btn-approve btn-xs" onclick="saveCourseRow('${id}', this)"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
             ${c.custom ? `<button class="btn btn-outline btn-sm btn-xs" onclick="openCourseForm('${id}')"><i class="fa-solid fa-pen"></i> Editar</button>` : ''}
+            ${c.modality !== 'presencial' ? `<button class="btn btn-outline btn-sm btn-xs" onclick="openContentForm('${id}')"><i class="fa-brands fa-youtube"></i> Videos${(c.outline || []).length ? ' ✓' : ''}</button>` : ''}
           </div>
         </td>
       </tr>`).join('');
@@ -859,6 +877,92 @@
     const cert = CERTS[certId] || await ElhyFirebase.validateCertificate(certId);
     if (!cert) { toast('Certificado no encontrado', 'error'); return; }
     await downloadCertificatePDF(cert);
+  }
+
+  /* ── Editor de videos (cursos online) ── */
+  let editingContentId = null;
+
+  function parseContentText(text) {
+    const modules = [], errors = [];
+    let current = null;
+    text.split('\n').forEach((raw, i) => {
+      const line = raw.trim();
+      if (!line) return;
+      if (line.startsWith('#')) {
+        current = { title: line.replace(/^#+\s*/, '') || `Módulo ${modules.length + 1}`, lessons: [] };
+        modules.push(current);
+        return;
+      }
+      const cols = (line.includes('|') ? line.split('|') : line.split('\t')).map(c => c.trim());
+      /* primero un enlace de YouTube; si no hay, un ID suelto que no sea la primera columna (el título) */
+      let linkIdx = cols.findIndex(c => /youtu/i.test(c) && ElhyFirebase.parseYouTubeId(c));
+      if (linkIdx === -1) linkIdx = cols.findIndex((c, k) => k > 0 && /^[A-Za-z0-9_-]{11}$/.test(c));
+      if (linkIdx === -1) { errors.push(`Línea ${i + 1}: no tiene un enlace de YouTube válido`); return; }
+      const video = ElhyFirebase.parseYouTubeId(cols[linkIdx]);
+      const others = cols.filter((_, k) => k !== linkIdx);
+      const title = others[0] || '';
+      const duration = others[1] || '';
+      if (!title) { errors.push(`Línea ${i + 1}: falta el título de la lección`); return; }
+      if (!current) { current = { title: 'Módulo 1', lessons: [] }; modules.push(current); }
+      current.lessons.push({ title, video, duration });
+    });
+    return { modules: modules.filter(m => m.lessons.length), errors };
+  }
+
+  function contentToText(content) {
+    if (!content) return '';
+    return content.modules.map(m =>
+      `# ${m.title}\n` + m.lessons.map(l => `${l.title} | https://youtu.be/${l.video}${l.duration ? ' | ' + l.duration : ''}`).join('\n')
+    ).join('\n\n');
+  }
+
+  function previewContent() {
+    const { modules, errors } = parseContentText(document.getElementById('ct-text').value);
+    const n = modules.reduce((a, m) => a + m.lessons.length, 0);
+    document.getElementById('ct-preview').innerHTML = errors.length
+      ? `<span style="color:#f87171">⚠️ ${esc(errors[0])}${errors.length > 1 ? ` (y ${errors.length - 1} más)` : ''}</span>`
+      : (n ? `✅ ${modules.length} módulo(s) · ${n} lección(es) listas para guardar` : '');
+  }
+
+  async function openContentForm(id) {
+    editingContentId = id;
+    document.getElementById('ct-heading').textContent = `Videos: ${CATALOG[id].title}`;
+    const ta = document.getElementById('ct-text');
+    ta.value = 'Cargando…'; ta.disabled = true;
+    const form = document.getElementById('content-form');
+    form.style.display = '';
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const content = await ElhyFirebase.getCourseContent(id);
+    ta.value = contentToText(content); ta.disabled = false;
+    ta.oninput = previewContent;
+    previewContent();
+    ta.focus();
+  }
+
+  function closeContentForm() {
+    document.getElementById('content-form').style.display = 'none';
+    editingContentId = null;
+  }
+
+  async function submitContentForm() {
+    const id = editingContentId;
+    if (!id) return;
+    const { modules, errors } = parseContentText(document.getElementById('ct-text').value);
+    if (errors.length) { toast(errors[0], 'error'); return; }
+    if (!modules.length && !confirm('No hay lecciones. ¿Quieres borrar todos los videos de este curso?')) return;
+    const btn = document.getElementById('ct-save');
+    btn.disabled = true;
+    try {
+      const r = await ElhyFirebase.saveCourseContent(id, modules);
+      toast(`Videos guardados ✅ (${r.lessons} lecciones)`, 'success');
+      closeContentForm();
+      renderCourses();
+    } catch (err) {
+      console.error(err);
+      toast('No se pudieron guardar los videos. ¿Publicaste las reglas nuevas en Firebase?', 'error');
+    } finally {
+      btn.disabled = false;
+    }
   }
 </script>
 </body>

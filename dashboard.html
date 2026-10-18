@@ -265,7 +265,7 @@
             <h3 id="placeholder-title">Selecciona una lección para comenzar</h3>
             <p id="placeholder-desc">Haz clic en cualquier lección del panel izquierdo</p>
           </div>
-          <iframe id="video-iframe" src="" allow="autoplay; fullscreen" allowfullscreen style="display:none"></iframe>
+          <iframe id="video-iframe" src="" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" style="display:none"></iframe>
         </div>
       </div>
 
@@ -654,6 +654,13 @@ async function loadUserData() {
 
   userProfile = await ElhyFirebase.ensureUserProfile(currentUser);
   enrolledIds = Object.keys(userProfile.courses || {});
+
+  /* Videos de YouTube cargados desde el panel admin (reemplazan el contenido base) */
+  await Promise.all(enrolledIds.map(async id => {
+    if (CATALOG[id] && CATALOG[id].modality === 'presencial') return;
+    const content = await ElhyFirebase.getCourseContent(id);
+    if (content) COURSES_DATA[id] = buildCourseFromContent(id, content);
+  }));
   completedLessons = await ElhyFirebase.getAllProgress(currentUser.uid);
   myRequests = await ElhyFirebase.getMyRequests(currentUser.uid);
 
@@ -682,6 +689,36 @@ async function loadUserData() {
   if (courseParam && enrolledIds.includes(courseParam) && COURSES_DATA[courseParam]) {
     openCourse(courseParam);
   }
+}
+
+/* Convierte el contenido guardado por el admin al formato del reproductor */
+function buildCourseFromContent(id, content) {
+  const meta = CATALOG[id] || {};
+  const base = COURSES_DATA[id] || {};
+  const levels = ['beginner', 'intermediate', 'advanced'];
+  const modules = content.modules.map((m, mi) => ({
+    id: 'm' + (mi + 1),
+    title: m.title,
+    level: levels[Math.min(levels.length - 1, Math.floor(mi * levels.length / content.modules.length))],
+    desc: '',
+    lessons: m.lessons.map(l => ({
+      id: l.id, title: l.title, duration: l.duration || '', type: 'video',
+      videoUrl: ElhyFirebase.youTubeEmbedUrl(l.video),
+      desc: '', objectives: [], level: ''
+    }))
+  }));
+  const total = modules.reduce((a, m) => a + m.lessons.length, 0);
+  const minutes = content.modules.reduce((a, m) => a + m.lessons.reduce((b, l) => b + (parseInt(l.duration, 10) || 0), 0), 0);
+  return {
+    id,
+    emoji: meta.emoji || base.emoji || '📘',
+    title: meta.title || base.title || id,
+    category: meta.category || base.category || '',
+    color: base.color || '#1e3a5f',
+    duration: meta.hours ? meta.hours + 'h' : (minutes ? (minutes >= 60 ? Math.round(minutes / 6) / 10 + 'h' : minutes + ' min') : (base.duration || '')),
+    totalLessons: total,
+    modules
+  };
 }
 
 /* Sube a Firebase el progreso que antes se guardaba solo en este navegador */
@@ -973,19 +1010,30 @@ function openLesson(moduleId, lessonId) {
 }
 
 /* ── Resources ── */
+/* Material de apoyo del curso (enlaces cargados desde el panel admin) */
 function renderResources(lesson, module) {
   const list = document.getElementById('resources-list');
-  const resources = [
-    {icon:'fa-file-pdf', name:'Material del módulo', desc:'Guía en PDF con los puntos clave de este módulo', color:'#dc2626'},
-    {icon:'fa-table', name:'Plantilla de ejercicios', desc:'Hoja de trabajo para practicar lo aprendido', color:'#059669'},
-    {icon:'fa-link', name:'Recursos adicionales', desc:'Links y herramientas recomendadas para esta lección', color:'#0284c7'},
-  ];
-  list.innerHTML = resources.map(r => `
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const mats = ((CATALOG[currentCourse.id] || {}).materials || []).filter(m => /^https?:\/\//i.test(m.url || ''));
+  if (!mats.length) {
+    list.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><h3>Sin material de apoyo por ahora</h3><p>Cuando el instructor agregue material para este curso aparecerá aquí.</p></div>`;
+    return;
+  }
+  const kind = url =>
+    /youtube\.com|youtu\.be/i.test(url) ? {icon:'fab fa-youtube', color:'#dc2626', label:'Video'} :
+    /\.pdf(\?|$)/i.test(url) ? {icon:'fas fa-file-pdf', color:'#dc2626', label:'PDF'} :
+    /docs\.google\.com\/spreadsheets|\.xlsx?(\?|$)/i.test(url) ? {icon:'fas fa-table', color:'#059669', label:'Hoja de cálculo'} :
+    /docs\.google\.com\/presentation|\.pptx?(\?|$)/i.test(url) ? {icon:'fas fa-file-powerpoint', color:'#d97706', label:'Presentación'} :
+    {icon:'fas fa-link', color:'#0284c7', label:'Enlace'};
+  list.innerHTML = mats.map(m => {
+    const k = kind(m.url);
+    return `
     <div class="resource-item">
-      <div class="resource-icon" style="background:${r.color}"><i class="fas ${r.icon}"></i></div>
-      <div class="resource-info"><h4>${r.name}</h4><p>${r.desc}</p></div>
-      <button class="resource-download" onclick="showToast('Recurso disponible pronto')"><i class="fas fa-download"></i> Descargar</button>
-    </div>`).join('');
+      <div class="resource-icon" style="background:${k.color}"><i class="${k.icon}"></i></div>
+      <div class="resource-info"><h4>${esc(m.title)}</h4><p>${k.label}</p></div>
+      <a class="resource-download" href="${esc(m.url)}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Abrir</a>
+    </div>`;
+  }).join('');
 }
 
 /* ── Complete lesson ── */
