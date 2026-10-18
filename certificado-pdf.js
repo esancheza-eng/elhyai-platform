@@ -86,10 +86,16 @@ function drawCertClassic(doc, d) {
   textSpaced(doc, 'CERTIFICADO', 148.5, y + 3.5, 0.4);
 
   // QR + código
-  if (d.qr) doc.addImage(d.qr, 'PNG', 22, 174, 16, 16);
+  if (d.qr) {
+    doc.setFillColor(255, 255, 255); doc.rect(18, 163, 28, 28, 'F');   // margen blanco para el lector
+    doc.addImage(d.qr, 'PNG', 19, 164, 26, 26);
+  }
   doc.setTextColor(...GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
-  doc.text(`Código: ${d.code}`, 41, 183);
-  doc.text(`Verificar en ${d.url.replace('https://', '')}`, 41, 187.5);
+  doc.text('Escanea el QR o ingresa el código en:', 50, 177);
+  doc.setFont('helvetica', 'bold'); doc.setTextColor(...INK); doc.setFontSize(8);
+  doc.text(d.code, 50, 182.5);
+  doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY); doc.setFontSize(7);
+  doc.text(d.url.replace('https://', '').replace(/\?code=.*$/, ''), 50, 187.5);
 }
 
 /* Datos del instructor que aparecen en el certificado */
@@ -123,7 +129,7 @@ async function downloadCertificatePDF(cert) {
   let qr = null;
   if (window.QRCode) {
     const holder = document.createElement('div');
-    new QRCode(holder, { text: url, width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M });
+    new QRCode(holder, { text: url, width: 512, height: 512, correctLevel: QRCode.CorrectLevel.L });
     const qrCanvas = holder.querySelector('canvas');
     if (qrCanvas) qr = qrCanvas.toDataURL('image/png');
   }
