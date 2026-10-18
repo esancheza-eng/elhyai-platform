@@ -31,7 +31,7 @@ function drawCertClassic(doc, d) {
   doc.setFillColor(...GOLD);
   [[15.5, 15.5], [281.5, 15.5], [15.5, 194.5], [281.5, 194.5]].forEach(([x, y]) => doc.circle(x, y, 1.6, 'F'));
 
-  if (d.logo) doc.addImage(d.logo, 'PNG', 119.5, 22, 58, 21.5);
+  if (d.logo) doc.addImage(d.logo, 'PNG', 119.5, 22, 58, 21.5, 'logo');
   else {
     doc.setTextColor(...NAVY); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
     doc.text('ElhyAi Consultores', 148.5, 36, { align: 'center' });
@@ -66,8 +66,8 @@ function drawCertClassic(doc, d) {
   doc.line(38, y, 108, y); doc.line(189, y, 259, y);
   // firma manuscrita del instructor (imagen PNG con fondo transparente)
   if (d.signature) {
-    const h = Math.min(22, 68 * d.signature.ratio), w = h / d.signature.ratio;   // máx. 68 mm de ancho, 22 mm de alto
-    doc.addImage(d.signature.data, 'PNG', 224 - w / 2, y - h + 1.5, w, h);
+    const h = Math.min(24, 76 * d.signature.ratio), w = h / d.signature.ratio;   // máx. 76 mm de ancho, 24 mm de alto
+    doc.addImage(d.signature.data, 'PNG', 224 - w / 2, y - h + 1.8, w, h, 'firma');
   }
   doc.setTextColor(...INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
   doc.text(d.date, 73, y - 3, { align: 'center' });
@@ -145,7 +145,7 @@ function loadSignature(src) {
 /* Genera y descarga el PDF de un certificado guardado en Firebase */
 async function downloadCertificatePDF(cert) {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
   const url = ElhyFirebase.certificateUrl(cert.certId);
 
   let qr = null;
