@@ -768,7 +768,7 @@
     const id = sel.value, c = CATALOG[id];
     document.getElementById('pr-body').style.display = '';
     document.getElementById('pr-info').innerHTML = [
-      c.hours ? `<i class="fa-regular fa-clock"></i> ${esc(c.hours)} horas` : '',
+      c.hours ? `<i class="fa-regular fa-clock"></i> ${esc(c.hours)} ${Number(c.hours) === 1 ? 'hora' : 'horas'}` : '',
       c.date ? `<i class="fa-regular fa-calendar"></i> ${esc(c.date)}` : '',
       c.location ? `<i class="fa-solid fa-location-dot"></i> ${esc(c.location)}` : '',
       `<i class="fa-solid fa-paperclip"></i> ${(c.materials || []).length} materiales`

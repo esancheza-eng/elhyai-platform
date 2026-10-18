@@ -184,7 +184,7 @@
     box.innerHTML = `<p class="greet">Hola, <strong>${esc(name)}</strong> 👋</p>` + FOUND.map((r, i) => {
       const c = r.course, p = r.participant;
       const meta = [
-        c.hours ? `<span><i class="far fa-clock"></i> ${esc(c.hours)} horas</span>` : '',
+        c.hours ? `<span><i class="far fa-clock"></i> ${esc(c.hours)} ${Number(c.hours) === 1 ? 'hora' : 'horas'}</span>` : '',
         c.date ? `<span><i class="far fa-calendar"></i> ${esc(c.date)}</span>` : '',
         c.location ? `<span><i class="fas fa-map-marker-alt"></i> ${esc(c.location)}</span>` : ''
       ].join('');

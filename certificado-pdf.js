@@ -64,6 +64,11 @@ function drawCertClassic(doc, d) {
   const y = 158;
   doc.setDrawColor(...INK); doc.setLineWidth(0.3);
   doc.line(38, y, 108, y); doc.line(189, y, 259, y);
+  // firma manuscrita del instructor (imagen PNG con fondo transparente)
+  if (d.signature) {
+    const h = Math.min(22, 68 * d.signature.ratio), w = h / d.signature.ratio;   // máx. 68 mm de ancho, 22 mm de alto
+    doc.addImage(d.signature.data, 'PNG', 224 - w / 2, y - h + 1.5, w, h);
+  }
   doc.setTextColor(...INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
   doc.text(d.date, 73, y - 3, { align: 'center' });
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...GREY);
@@ -120,6 +125,23 @@ function loadImageData(src) {
 }
 
 
+/* Carga la firma (si existe) y su proporción alto/ancho */
+function loadSignature(src) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = img.naturalWidth; c.height = img.naturalHeight;
+        c.getContext('2d').drawImage(img, 0, 0);
+        resolve({ data: c.toDataURL('image/png'), ratio: img.naturalHeight / img.naturalWidth });
+      } catch (e) { resolve(null); }
+    };
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
 /* Genera y descarga el PDF de un certificado guardado en Firebase */
 async function downloadCertificatePDF(cert) {
   const { jsPDF } = window.jspdf;
@@ -136,7 +158,7 @@ async function downloadCertificatePDF(cert) {
 
   const presencial = cert.modality === 'presencial';
   const detail = presencial
-    ? [cert.hours ? `Duración: ${cert.hours} horas` : '', cert.location || '', cert.courseDate || ''].filter(Boolean).join('  ·  ')
+    ? [cert.hours ? `Duración: ${cert.hours} ${Number(cert.hours) === 1 ? 'hora' : 'horas'}` : '', cert.location || '', cert.courseDate || ''].filter(Boolean).join('  ·  ')
     : '';
 
   drawCertClassic(doc, {
@@ -148,6 +170,7 @@ async function downloadCertificatePDF(cert) {
     lead: presencial ? 'por haber aprobado satisfactoriamente el curso presencial' : null,
     detail,
     logo: await loadImageData('logo-elhyai.png'),
+    signature: await loadSignature('firma-elhy.png'),
     qr,
     instructor: INSTRUCTOR_NAME,
     reg: INSTRUCTOR_TITLE_REG

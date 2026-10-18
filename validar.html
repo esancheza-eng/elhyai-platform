@@ -545,7 +545,7 @@ function toViewModel(d) {
     instructor:   'Master Elhy Christian Sánchez Arreaga',
     grade:        'Aprobado',
     platform:     d.modality === 'presencial'
-                    ? esc(['Presencial', d.hours ? d.hours + ' horas' : '', d.location].filter(Boolean).join(' · '))
+                    ? esc(['Presencial', d.hours ? d.hours + (Number(d.hours) === 1 ? ' hora' : ' horas') : '', d.location].filter(Boolean).join(' · '))
                     : 'Online · ElhyAI Academy',
     duration:     '',
     modules:      ''
