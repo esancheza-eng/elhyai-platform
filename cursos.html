@@ -1098,6 +1098,7 @@ let currentCategory = 'todos';
 let currentLayout   = 'grid';
 let currentPage     = 1;
 let maxPrice        = 60;
+let PRICE_MAX       = 60;   // tope del filtro; se ajusta al precio más alto
 let minRating       = 0;
 const PAGE_SIZE     = 6;
 
@@ -1387,8 +1388,8 @@ function renderCatalog() {
         <div class="course-footer">
           <div class="price-group">
             <span class="price-current">$${c.price}</span>
-            <span class="price-original">$${c.originalPrice}</span>
-            <span class="discount-pct">-${discount(c.originalPrice,c.price)}%</span>
+            ${c.originalPrice > c.price ? `<span class="price-original">$${c.originalPrice}</span>
+            <span class="discount-pct">-${discount(c.originalPrice,c.price)}%</span>` : ''}
           </div>
           <div class="card-actions">
             <button class="btn-wishlist" onclick="toggleWishlist(this)" title="Favoritos"><i class="far fa-heart"></i></button>
@@ -1433,8 +1434,8 @@ function openDrawer(id) {
     </div>
     <div class="drawer-price-row">
       <div>
-        <div class="drawer-price">$${c.price} <small>$${c.originalPrice}</small></div>
-        <div style="color:var(--gold);font-size:.78rem;margin-top:.2rem;">Ahorra ${discount(c.originalPrice,c.price)}%</div>
+        <div class="drawer-price">$${c.price} ${c.originalPrice > c.price ? `<small>$${c.originalPrice}</small>` : ''}</div>
+        ${c.originalPrice > c.price ? `<div style="color:var(--gold);font-size:.78rem;margin-top:.2rem;">Ahorra ${discount(c.originalPrice,c.price)}%</div>` : ''}
       </div>
       <div class="course-rating" style="margin:0">
         <div class="stars-display">${stars(c.rating)}</div>
@@ -1470,7 +1471,7 @@ function setCategory(cat, el) {
 
 function updatePriceRange(val) {
   maxPrice = parseInt(val);
-  const pct = (val / 60) * 100;
+  const pct = (val / PRICE_MAX) * 100;
   document.getElementById('price-range').style.setProperty('--pct', pct + '%');
   document.getElementById('price-val').textContent = '$' + val;
   renderCatalog();
@@ -1483,13 +1484,13 @@ function setRatingFilter(r) {
 
 function clearFilters() {
   currentCategory = 'todos';
-  maxPrice = 60;
+  maxPrice = PRICE_MAX;
   ratingFilter = 0;
   currentPage = 1;
   document.getElementById('catalog-search').value = '';
   document.getElementById('sort-select').value = 'default';
-  document.getElementById('price-range').value = 60;
-  document.getElementById('price-val').textContent = '$60';
+  document.getElementById('price-range').value = PRICE_MAX;
+  document.getElementById('price-val').textContent = '$' + PRICE_MAX;
   document.querySelectorAll('.chip').forEach((c,i) => c.classList.toggle('active', i === 0));
   document.querySelectorAll('[data-filter]').forEach(c => c.checked = false);
   renderCatalog();
@@ -1566,6 +1567,24 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   });
   renderCatalog();
+
+  /* Nombres y precios editados desde el panel admin */
+  ElhyFirebase.catalogReady.then(cat => {
+    CATALOG.forEach(c => {
+      const k = cat[c.id];
+      if (!k) return;
+      c.title = k.title;
+      c.price = k.price;
+      c.originalPrice = k.originalPrice;
+    });
+    PRICE_MAX = Math.max(10, Math.ceil(Math.max(...CATALOG.map(c => c.price)) / 10) * 10);
+    maxPrice = PRICE_MAX;
+    const range = document.getElementById('price-range');
+    range.max = PRICE_MAX;
+    range.value = PRICE_MAX;
+    document.getElementById('price-val').textContent = '$' + PRICE_MAX;
+    renderCatalog();
+  });
 });
 </script>
 </body>

@@ -549,8 +549,14 @@ ElhyFirebase.onAuthStateChanged(user=>{
   }
 });
 
+/* Nombres editados desde el panel admin */
+function applyCatalog(){
+  COURSES.forEach(c=>{const k=ElhyFirebase.COURSE_CATALOG[c.id];if(k)c.title=k.title;});
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   renderCourses();
+  ElhyFirebase.catalogReady.then(()=>{applyCatalog();renderCourses(document.getElementById('nav-q')?.value||'');});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 });
 </script>

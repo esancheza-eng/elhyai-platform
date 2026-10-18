@@ -20,21 +20,22 @@ const FIREBASE_CONFIG = {
 const SITE_URL        = 'https://academy.elhyai.com';
 const WHATSAPP_NUMBER = '593989938910';
 
-/* Catálogo único (id → título, precio, emoji, categoría).
-   Si cambias un precio, cámbialo aquí. */
+/* Catálogo base (id → título, precio, precio anterior, emoji, categoría).
+   Nombres y precios se editan desde admin.html → "Cursos y precios";
+   lo que guardes ahí (nodo "catalog" en Firebase) reemplaza estos valores. */
 const COURSE_CATALOG = {
-  'ia-cero':      { title: 'Inteligencia Artificial desde Cero',  price: 49, emoji: '🤖', category: 'IA' },
-  'chatgpt-auto': { title: 'Automatización con ChatGPT',          price: 45, emoji: '⚡', category: 'IA' },
-  'python-ia':    { title: 'Python para Inteligencia Artificial', price: 55, emoji: '🐍', category: 'IA' },
-  'marketing-ia': { title: 'Marketing Digital con IA',            price: 39, emoji: '📱', category: 'Marketing' },
-  'ventas-ia':    { title: 'Ventas Digitales con IA',             price: 45, emoji: '🎯', category: 'Marketing' },
-  'ecommerce':    { title: 'E-Commerce con IA',                   price: 49, emoji: '🛒', category: 'Marketing' },
-  'excel-datos':  { title: 'Excel y Análisis de Datos',           price: 35, emoji: '📊', category: 'Datos' },
-  'finanzas':     { title: 'Finanzas Personales e Inversión',     price: 35, emoji: '💳', category: 'Datos' },
-  'google-drive': { title: 'Google Drive Profesional',            price: 25, emoji: '💾', category: 'Herramientas' },
-  'canva-ia':     { title: 'Diseño Digital con Canva e IA',       price: 29, emoji: '🎨', category: 'Herramientas' },
-  'productivity': { title: 'Productividad con IA',                price: 29, emoji: '⏱️', category: 'Herramientas' },
-  'cobranza-ia':  { title: 'Cobranza Inteligente con IA',         price: 55, emoji: '💰', category: 'Cobranza' }
+  'ia-cero':      { title: 'Inteligencia Artificial desde Cero',  price: 49, originalPrice: 79, emoji: '🤖', category: 'IA' },
+  'chatgpt-auto': { title: 'Automatización con ChatGPT',          price: 45, originalPrice: 75, emoji: '⚡', category: 'IA' },
+  'python-ia':    { title: 'Python para Inteligencia Artificial', price: 55, originalPrice: 89, emoji: '🐍', category: 'IA' },
+  'marketing-ia': { title: 'Marketing Digital con IA',            price: 39, originalPrice: 65, emoji: '📱', category: 'Marketing' },
+  'ventas-ia':    { title: 'Ventas Digitales con IA',             price: 45, originalPrice: 70, emoji: '🎯', category: 'Marketing' },
+  'ecommerce':    { title: 'E-Commerce con IA',                   price: 49, originalPrice: 80, emoji: '🛒', category: 'Marketing' },
+  'excel-datos':  { title: 'Excel y Análisis de Datos',           price: 35, originalPrice: 55, emoji: '📊', category: 'Datos' },
+  'finanzas':     { title: 'Finanzas Personales e Inversión',     price: 35, originalPrice: 55, emoji: '💳', category: 'Datos' },
+  'google-drive': { title: 'Google Drive Profesional',            price: 25, originalPrice: 40, emoji: '💾', category: 'Herramientas' },
+  'canva-ia':     { title: 'Diseño Digital con Canva e IA',       price: 29, originalPrice: 45, emoji: '🎨', category: 'Herramientas' },
+  'productivity': { title: 'Productividad con IA',                price: 29, originalPrice: 45, emoji: '⏱️', category: 'Herramientas' },
+  'cobranza-ia':  { title: 'Cobranza Inteligente con IA',         price: 55, originalPrice: 90, emoji: '💰', category: 'Cobranza' }
 };
 
 /* ── Inicializar Firebase ───────────────────────────────────── */
@@ -44,6 +45,36 @@ if (!firebase.apps || !firebase.apps.length) {
 
 const auth     = firebase.auth();
 const database = firebase.database();
+
+/* ══════════════════════════════════════════════════════════════
+   CATÁLOGO EDITABLE (nombres y precios guardados por el admin)
+══════════════════════════════════════════════════════════════ */
+
+/* Aplica los cambios guardados en Firebase sobre COURSE_CATALOG.
+   Las páginas esperan esta promesa antes de mostrar nombres y precios. */
+const catalogReady = database.ref('catalog').once('value')
+  .then(snap => {
+    const saved = snap.val() || {};
+    Object.keys(saved).forEach(id => {
+      if (!COURSE_CATALOG[id]) return;
+      const c = saved[id];
+      if (typeof c.title === 'string' && c.title.trim()) COURSE_CATALOG[id].title = c.title.trim();
+      if (typeof c.price === 'number') COURSE_CATALOG[id].price = c.price;
+      COURSE_CATALOG[id].originalPrice = (typeof c.originalPrice === 'number') ? c.originalPrice : null;
+    });
+    return COURSE_CATALOG;
+  })
+  .catch(err => { console.warn('Catálogo por defecto:', err); return COURSE_CATALOG; });
+
+/* Admin: guarda nombre, precio y precio anterior (opcional) de un curso */
+async function saveCatalogCourse(courseId, { title, price, originalPrice }) {
+  if (!COURSE_CATALOG[courseId]) throw new Error('unknown-course');
+  const data = { title: String(title).trim(), price: Number(price), updatedAt: Date.now() };
+  const op = Number(originalPrice);
+  if (originalPrice !== '' && originalPrice != null && op > data.price) data.originalPrice = op;
+  await database.ref(`catalog/${courseId}`).set(data);
+  Object.assign(COURSE_CATALOG[courseId], { title: data.title, price: data.price, originalPrice: data.originalPrice ?? null });
+}
 
 /* ══════════════════════════════════════════════════════════════
    AUTH
@@ -127,6 +158,7 @@ async function updateUserProfile(uid, data) {
 async function requestCourse(courseId) {
   const user = auth.currentUser;
   if (!user) throw new Error('not-logged-in');
+  await catalogReady;
   const course = COURSE_CATALOG[courseId];
   if (!course) throw new Error('unknown-course');
 
@@ -277,6 +309,7 @@ async function getAllCertificates() {
 
 /* Habilita un curso: inscripción + pago + marca la solicitud como aprobada */
 async function approveCourse(uid, courseId, amount, method = 'Transferencia') {
+  await catalogReady;
   const course = COURSE_CATALOG[courseId] || { title: courseId };
   const now = Date.now();
   const paymentId = 'PAY-' + now;
@@ -361,6 +394,18 @@ async function revokeCourse(uid, courseId) {
         ".write": "auth != null && !data.exists() && newData.child('uid').val() === auth.uid && root.child('users').child(auth.uid).child('courses').child(newData.child('courseId').val()).exists()"
       }
     },
+    "catalog": {
+      ".read": true,
+      "$courseId": {
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".validate": "newData.hasChildren(['title', 'price'])",
+        "title": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120" },
+        "price": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000" },
+        "originalPrice": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000" },
+        "updatedAt": { ".validate": "newData.isNumber()" },
+        "$other": { ".validate": false }
+      }
+    },
     "enrollments": {
       ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
       ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
@@ -375,7 +420,7 @@ async function revokeCourse(uid, courseId) {
 ══════════════════════════════════════════════════════════════ */
 
 window.ElhyFirebase = {
-  auth, database, SITE_URL, WHATSAPP_NUMBER, COURSE_CATALOG,
+  auth, database, SITE_URL, WHATSAPP_NUMBER, COURSE_CATALOG, catalogReady, saveCatalogCourse,
   registerUser, loginUser, loginWithGoogle, logoutUser,
   resetPassword, onAuthStateChanged,
   ensureUserProfile, getUserProfile, updateUserProfile,

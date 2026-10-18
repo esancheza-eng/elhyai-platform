@@ -647,6 +647,10 @@ ElhyFirebase.onAuthStateChanged(async user => {
 });
 
 async function loadUserData() {
+  /* Nombres editados desde el panel admin */
+  await ElhyFirebase.catalogReady;
+  Object.keys(COURSES_DATA).forEach(id => { if (CATALOG[id]) COURSES_DATA[id].title = CATALOG[id].title; });
+
   userProfile = await ElhyFirebase.ensureUserProfile(currentUser);
   enrolledIds = Object.keys(userProfile.courses || {});
   completedLessons = await ElhyFirebase.getAllProgress(currentUser.uid);

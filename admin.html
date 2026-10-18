@@ -28,6 +28,10 @@
     .chip-course button { background: none; border: 0; color: #f87171; cursor: pointer; font-size: .7rem; padding: 0; }
     .grant-row { display: flex; gap: .4rem; margin-top: .4rem; }
     .grant-row select { background: rgba(14,32,64,.6); color: var(--white); border: 1px solid var(--glass-border); border-radius: 6px; font-size: .75rem; padding: .25rem .4rem; max-width: 190px; }
+    .cat-input { width: 100%; min-width: 220px; background: rgba(14,32,64,.6); color: var(--white); border: 1px solid var(--glass-border); border-radius: 6px; padding: .45rem .6rem; font: inherit; font-size: .85rem; }
+    .cat-input.num { min-width: 0; width: 90px; }
+    .cat-input:focus { outline: none; border-color: var(--gold); }
+    .cat-input.dirty { border-color: var(--gold); }
     .empty-row td { text-align: center; color: var(--grey); padding: 2rem 1rem; }
     .gate { max-width: 460px; margin: 18vh auto 0; text-align: center; padding: 2.5rem 2rem; border-radius: var(--radius); }
     .gate i { font-size: 2.5rem; color: var(--gold); margin-bottom: 1rem; }
@@ -172,12 +176,12 @@
       <div class="admin-header">
         <div>
           <h2>Cursos y precios</h2>
-          <p style="font-size:.85rem;color:var(--grey)">Los precios se cambian en <code>firebase.js</code> (COURSE_CATALOG).</p>
+          <p style="font-size:.85rem;color:var(--grey)">Cambia el nombre o el precio y presiona <strong>Guardar</strong>. Se actualiza en todo el sitio. El precio anterior es opcional: si es mayor que el precio, se muestra tachado con el % de descuento.</p>
         </div>
       </div>
       <div class="glass table-wrap" style="padding:1.5rem;border-radius:var(--radius)">
         <table class="admin-table">
-          <thead><tr><th></th><th>Curso</th><th>Categoría</th><th>Precio</th><th>Alumnos habilitados</th></tr></thead>
+          <thead><tr><th></th><th>Nombre del curso</th><th>Precio ($)</th><th>Precio anterior ($)</th><th>Alumnos</th><th></th></tr></thead>
           <tbody id="tb-courses"></tbody>
         </table>
       </div>
@@ -244,6 +248,7 @@
   /* ── Carga de datos ── */
   async function loadAll() {
     try {
+      await ElhyFirebase.catalogReady;
       [USERS, REQUESTS, PAYMENTS, CERTS] = await Promise.all([
         ElhyFirebase.getAllUsers(),
         ElhyFirebase.getAllRequests(),
@@ -463,18 +468,48 @@
       </tr>`).join('');
   }
 
-  /* ── Cursos ── */
+  /* ── Cursos y precios (editables) ── */
   function renderCourses() {
     const counts = {};
     Object.values(USERS).forEach(u => Object.keys(u.courses || {}).forEach(cid => counts[cid] = (counts[cid] || 0) + 1));
     document.getElementById('tb-courses').innerHTML = Object.entries(CATALOG).map(([id, c]) => `
-      <tr>
+      <tr data-course="${id}">
         <td style="font-size:1.4rem">${c.emoji}</td>
-        <td style="font-weight:600">${esc(c.title)}<div class="muted" style="font-family:monospace">${id}</div></td>
-        <td><span class="badge badge-yellow">${esc(c.category)}</span></td>
-        <td style="color:var(--gold);font-weight:700">${money(c.price)}</td>
+        <td>
+          <input class="cat-input" data-f="title" maxlength="120" value="${esc(c.title)}" oninput="markDirty(this)" />
+          <div class="muted" style="margin-top:.25rem"><span class="badge badge-yellow">${esc(c.category)}</span> <span style="font-family:monospace">${id}</span></div>
+        </td>
+        <td><input class="cat-input num" data-f="price" type="number" min="0" max="10000" step="0.01" value="${c.price}" oninput="markDirty(this)" /></td>
+        <td><input class="cat-input num" data-f="originalPrice" type="number" min="0" max="10000" step="0.01" value="${c.originalPrice ?? ''}" placeholder="—" oninput="markDirty(this)" /></td>
         <td>${counts[id] || 0}</td>
+        <td><button class="btn-approve btn-xs" onclick="saveCourseRow('${id}', this)"><i class="fa-solid fa-floppy-disk"></i> Guardar</button></td>
       </tr>`).join('');
+  }
+
+  function markDirty(input) { input.classList.add('dirty'); }
+
+  async function saveCourseRow(id, btn) {
+    const row = btn.closest('tr');
+    const get = f => row.querySelector(`[data-f="${f}"]`).value.trim();
+    const title = get('title'), price = get('price'), originalPrice = get('originalPrice');
+    if (!title) { toast('El nombre no puede quedar vacío', 'error'); return; }
+    if (price === '' || isNaN(Number(price)) || Number(price) < 0 || Number(price) > 10000) { toast('Precio no válido', 'error'); return; }
+    if (originalPrice !== '' && (isNaN(Number(originalPrice)) || Number(originalPrice) < 0 || Number(originalPrice) > 10000)) { toast('Precio anterior no válido', 'error'); return; }
+    if (originalPrice !== '' && Number(originalPrice) <= Number(price)) {
+      toast('El precio anterior debe ser mayor que el precio; se guardará sin descuento', 'info');
+    }
+    btn.disabled = true;
+    try {
+      await ElhyFirebase.saveCatalogCourse(id, { title, price: Number(price), originalPrice });
+      toast(`"${title}" guardado ✅`, 'success');
+      renderCourses();
+      renderRequests();
+      renderStudents();
+    } catch (err) {
+      console.error(err);
+      toast('No se pudo guardar. ¿Publicaste las reglas nuevas en Firebase?', 'error');
+      btn.disabled = false;
+    }
   }
 </script>
 </body>
