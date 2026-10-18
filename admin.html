@@ -477,7 +477,7 @@
         <td style="font-size:1.4rem">${c.emoji}</td>
         <td>
           <input class="cat-input" data-f="title" maxlength="120" value="${esc(c.title)}" oninput="markDirty(this)" />
-          <div class="muted" style="margin-top:.25rem"><span class="badge badge-yellow">${esc(c.category)}</span> <span style="font-family:monospace">${id}</span></div>
+          <div class="muted" style="margin-top:.25rem"><span class="badge badge-yellow">${esc(c.category)}</span></div>
         </td>
         <td><input class="cat-input num" data-f="price" type="number" min="0" max="10000" step="0.01" value="${c.price}" oninput="markDirty(this)" /></td>
         <td><input class="cat-input num" data-f="originalPrice" type="number" min="0" max="10000" step="0.01" value="${c.originalPrice ?? ''}" placeholder="—" oninput="markDirty(this)" /></td>
