@@ -1,9 +1,10 @@
 /* ============================================================
    firebase.js — ElhyAI Platform
-   Configuración real Firebase + Auth + Realtime Database
+   Configuración Firebase + Auth + Realtime Database
+   Flujo de pago: el alumno solicita el curso, paga por transferencia,
+   envía el comprobante por WhatsApp y el admin lo habilita en admin.html
    ============================================================ */
 
-/* ── SDK Firebase (CDN compatibilidad) ─────────────────────── */
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyApAGUjcrB_rQQgNioPUgmGk8K7CiXTR9k",
   authDomain:        "elhyai-platform.firebaseapp.com",
@@ -15,6 +16,27 @@ const FIREBASE_CONFIG = {
   measurementId:     "G-ELQ6DB1TW5"
 };
 
+/* ── Datos generales de la plataforma ───────────────────────── */
+const SITE_URL        = 'https://academy.elhyai.com';
+const WHATSAPP_NUMBER = '593989938910';
+
+/* Catálogo único (id → título, precio, emoji, categoría).
+   Si cambias un precio, cámbialo aquí. */
+const COURSE_CATALOG = {
+  'ia-cero':      { title: 'Inteligencia Artificial desde Cero',  price: 49, emoji: '🤖', category: 'IA' },
+  'chatgpt-auto': { title: 'Automatización con ChatGPT',          price: 45, emoji: '⚡', category: 'IA' },
+  'python-ia':    { title: 'Python para Inteligencia Artificial', price: 55, emoji: '🐍', category: 'IA' },
+  'marketing-ia': { title: 'Marketing Digital con IA',            price: 39, emoji: '📱', category: 'Marketing' },
+  'ventas-ia':    { title: 'Ventas Digitales con IA',             price: 45, emoji: '🎯', category: 'Marketing' },
+  'ecommerce':    { title: 'E-Commerce con IA',                   price: 49, emoji: '🛒', category: 'Marketing' },
+  'excel-datos':  { title: 'Excel y Análisis de Datos',           price: 35, emoji: '📊', category: 'Datos' },
+  'finanzas':     { title: 'Finanzas Personales e Inversión',     price: 35, emoji: '💳', category: 'Datos' },
+  'google-drive': { title: 'Google Drive Profesional',            price: 25, emoji: '💾', category: 'Herramientas' },
+  'canva-ia':     { title: 'Diseño Digital con Canva e IA',       price: 29, emoji: '🎨', category: 'Herramientas' },
+  'productivity': { title: 'Productividad con IA',                price: 29, emoji: '⏱️', category: 'Herramientas' },
+  'cobranza-ia':  { title: 'Cobranza Inteligente con IA',         price: 55, emoji: '💰', category: 'Cobranza' }
+};
+
 /* ── Inicializar Firebase ───────────────────────────────────── */
 if (!firebase.apps || !firebase.apps.length) {
   firebase.initializeApp(FIREBASE_CONFIG);
@@ -24,78 +46,67 @@ const auth     = firebase.auth();
 const database = firebase.database();
 
 /* ══════════════════════════════════════════════════════════════
-   AUTH HELPERS
+   AUTH
 ══════════════════════════════════════════════════════════════ */
 
-/* Registrar usuario con email/password */
 async function registerUser(name, email, password, phone = '') {
   const cred = await auth.createUserWithEmailAndPassword(email, password);
   await cred.user.updateProfile({ displayName: name });
-
-  /* Guardar perfil en Realtime DB */
   await database.ref('users/' + cred.user.uid).set({
-    uid:       cred.user.uid,
-    name,
-    email,
-    phone,
-    role:      'student',
-    createdAt: Date.now(),
-    courses:   {},
-    progress:  {}
+    uid: cred.user.uid, name, email, phone,
+    role: 'student', createdAt: Date.now()
   });
-
   return cred.user;
 }
 
-/* Login con email/password */
 async function loginUser(email, password) {
   const cred = await auth.signInWithEmailAndPassword(email, password);
   return cred.user;
 }
 
-/* Login con Google */
 async function loginWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   const cred = await auth.signInWithPopup(provider);
-
-  /* Si es nuevo usuario, crear perfil */
-  const snap = await database.ref('users/' + cred.user.uid).once('value');
-  if (!snap.exists()) {
-    await database.ref('users/' + cred.user.uid).set({
-      uid:       cred.user.uid,
-      name:      cred.user.displayName,
-      email:     cred.user.email,
-      phone:     '',
-      role:      'student',
-      createdAt: Date.now(),
-      courses:   {},
-      progress:  {}
-    });
-  }
+  await ensureUserProfile(cred.user);
   return cred.user;
 }
 
-/* Logout */
 async function logoutUser() {
   await auth.signOut();
   localStorage.removeItem('elhyai_user');
   location.href = 'index.html';
 }
 
-/* Recuperar contraseña */
 async function resetPassword(email) {
+  auth.languageCode = 'es';
   await auth.sendPasswordResetEmail(email);
 }
 
-/* Observer de sesión */
 function onAuthStateChanged(callback) {
   return auth.onAuthStateChanged(callback);
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DATABASE HELPERS — USUARIOS
+   PERFIL
 ══════════════════════════════════════════════════════════════ */
+
+/* Crea el perfil si no existe (usuarios antiguos o de Google) */
+async function ensureUserProfile(user) {
+  const ref  = database.ref('users/' + user.uid);
+  const snap = await ref.once('value');
+  if (snap.exists()) return snap.val();
+  const profile = {
+    uid: user.uid,
+    name: user.displayName || (user.email || '').split('@')[0],
+    email: user.email || '',
+    phone: '',
+    role: 'student',
+    createdAt: Date.now()
+  };
+  await ref.set(profile);
+  return profile;
+}
 
 async function getUserProfile(uid) {
   const snap = await database.ref('users/' + uid).once('value');
@@ -103,97 +114,121 @@ async function getUserProfile(uid) {
 }
 
 async function updateUserProfile(uid, data) {
-  await database.ref('users/' + uid).update(data);
+  const allowed = {};
+  if (data.name  !== undefined) allowed.name  = data.name;
+  if (data.phone !== undefined) allowed.phone = data.phone;
+  await database.ref('users/' + uid).update(allowed);
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DATABASE HELPERS — CURSOS / INSCRIPCIONES
+   SOLICITUDES DE CURSO (alumno)
 ══════════════════════════════════════════════════════════════ */
 
-/* Inscribir estudiante en un curso */
-async function enrollCourse(uid, courseId, courseTitle, price) {
-  const enrollData = {
+async function requestCourse(courseId) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('not-logged-in');
+  const course = COURSE_CATALOG[courseId];
+  if (!course) throw new Error('unknown-course');
+
+  const enrolled = await isEnrolled(user.uid, courseId);
+  if (enrolled) return { alreadyEnrolled: true };
+
+  await database.ref(`requests/${user.uid}/${courseId}`).set({
+    uid: user.uid,
+    name: user.displayName || '',
+    email: user.email || '',
     courseId,
-    courseTitle,
-    price,
-    enrolledAt: Date.now(),
-    progress:   0,
-    completed:  false
-  };
-  await database.ref(`users/${uid}/courses/${courseId}`).set(enrollData);
-  /* Registrar en colección global de inscripciones */
-  await database.ref(`enrollments/${courseId}/${uid}`).set({
-    uid,
-    enrolledAt: Date.now()
+    courseTitle: course.title,
+    price: course.price,
+    status: 'pending',
+    requestedAt: Date.now()
   });
-  return enrollData;
+  return { alreadyEnrolled: false };
 }
 
-/* Obtener cursos de un usuario */
+async function getMyRequests(uid) {
+  const snap = await database.ref(`requests/${uid}`).once('value');
+  return snap.val() || {};
+}
+
+/* Enlace de WhatsApp con el mensaje del comprobante ya escrito */
+function whatsappPaymentLink(courseId, user) {
+  const c = COURSE_CATALOG[courseId] || { title: courseId, price: '' };
+  const msg =
+    `Hola ElhyAI 👋, solicité el curso *${c.title}* ($${c.price}).\n` +
+    `Nombre: ${user?.displayName || ''}\n` +
+    `Correo: ${user?.email || ''}\n` +
+    `Adjunto mi comprobante de pago (o envíenme los datos para transferir).`;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CURSOS DEL ALUMNO
+══════════════════════════════════════════════════════════════ */
+
 async function getUserCourses(uid) {
   const snap = await database.ref(`users/${uid}/courses`).once('value');
   return snap.val() || {};
 }
 
-/* Verificar si usuario está inscrito */
 async function isEnrolled(uid, courseId) {
   const snap = await database.ref(`users/${uid}/courses/${courseId}`).once('value');
   return snap.exists();
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DATABASE HELPERS — PROGRESO
+   PROGRESO (por lección)
 ══════════════════════════════════════════════════════════════ */
 
-async function getProgress(uid, courseId) {
-  const snap = await database.ref(`users/${uid}/progress/${courseId}`).once('value');
-  return snap.val() || { completedModules: [], percent: 0 };
+/* Devuelve { courseId: { lessonId: timestamp } } */
+async function getAllProgress(uid) {
+  const snap = await database.ref(`users/${uid}/progress`).once('value');
+  const raw  = snap.val() || {};
+  const out  = {};
+  Object.keys(raw).forEach(cid => { out[cid] = raw[cid].lessons || {}; });
+  return out;
 }
 
-async function markModuleComplete(uid, courseId, moduleIndex, totalModules) {
-  const progressRef = database.ref(`users/${uid}/progress/${courseId}`);
-  const snap = await progressRef.once('value');
-  const current = snap.val() || { completedModules: [] };
-
-  const completed = current.completedModules || [];
-  if (!completed.includes(moduleIndex)) {
-    completed.push(moduleIndex);
-  }
-  const percent = Math.round((completed.length / totalModules) * 100);
-
-  await progressRef.set({ completedModules: completed, percent, updatedAt: Date.now() });
-
-  /* Si completó el 100%, marcar curso como completado */
-  if (percent === 100) {
-    await database.ref(`users/${uid}/courses/${courseId}`).update({
-      completed: true,
-      completedAt: Date.now(),
-      progress: 100
-    });
-  } else {
-    await database.ref(`users/${uid}/courses/${courseId}`).update({ progress: percent });
-  }
-
-  return percent;
+async function saveLessonComplete(uid, courseId, lessonId, percent) {
+  const base = `users/${uid}/progress/${courseId}`;
+  await database.ref().update({
+    [`${base}/lessons/${lessonId}`]: Date.now(),
+    [`${base}/percent`]: percent,
+    [`${base}/updatedAt`]: Date.now()
+  });
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DATABASE HELPERS — CERTIFICADOS
+   CERTIFICADOS
 ══════════════════════════════════════════════════════════════ */
 
-async function saveCertificate(uid, courseId, courseTitle, studentName) {
-  const certId   = 'ELHYAI-' + Math.random().toString(36).substr(2, 10).toUpperCase();
+function newCertId() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sin O/0 ni I/1
+  let id = '';
+  const rnd = crypto.getRandomValues(new Uint32Array(10));
+  for (let i = 0; i < 10; i++) id += chars[rnd[i] % chars.length];
+  return 'ELHYAI-' + id;
+}
+
+function certificateUrl(certId) {
+  return `${SITE_URL}/validar.html?code=${certId}`;
+}
+
+/* Emite el certificado una sola vez por curso; si ya existe, lo devuelve */
+async function issueCertificate(uid, courseId, courseTitle, studentName) {
+  const mine = await database.ref(`users/${uid}/certificates/${courseId}`).once('value');
+  if (mine.exists()) return mine.val();
+
+  const certId = newCertId();
   const certData = {
-    certId,
-    uid,
-    courseId,
-    courseTitle,
-    studentName,
+    certId, uid, courseId, courseTitle, studentName,
     issuedAt: Date.now(),
-    validUrl: `https://cursos.elhyai.com/validar?code=${certId}`
+    validUrl: certificateUrl(certId)
   };
-  await database.ref(`certificates/${certId}`).set(certData);
-  await database.ref(`users/${uid}/certificates/${courseId}`).set(certData);
+  await database.ref().update({
+    [`certificates/${certId}`]: certData,
+    [`users/${uid}/certificates/${courseId}`]: certData
+  });
   return certData;
 }
 
@@ -208,74 +243,146 @@ async function validateCertificate(certId) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DATABASE HELPERS — ADMIN
+   ADMIN
 ══════════════════════════════════════════════════════════════ */
+
+async function isAdmin(uid) {
+  try {
+    const snap = await database.ref(`admins/${uid}`).once('value');
+    return snap.val() === true;
+  } catch (e) {
+    return false;
+  }
+}
 
 async function getAllUsers() {
   const snap = await database.ref('users').once('value');
   return snap.val() || {};
 }
 
-async function getTotalEnrollments() {
-  const snap = await database.ref('enrollments').once('value');
+async function getAllRequests() {
+  const snap = await database.ref('requests').once('value');
   return snap.val() || {};
 }
 
-async function savePayment(uid, courseId, amount, method) {
-  const paymentId = 'PAY-' + Date.now();
-  await database.ref(`payments/${paymentId}`).set({
-    paymentId, uid, courseId, amount, method,
-    status: 'completed',
-    createdAt: Date.now()
-  });
+async function getAllPayments() {
+  const snap = await database.ref('payments').once('value');
+  return snap.val() || {};
+}
+
+async function getAllCertificates() {
+  const snap = await database.ref('certificates').once('value');
+  return snap.val() || {};
+}
+
+/* Habilita un curso: inscripción + pago + marca la solicitud como aprobada */
+async function approveCourse(uid, courseId, amount, method = 'Transferencia') {
+  const course = COURSE_CATALOG[courseId] || { title: courseId };
+  const now = Date.now();
+  const paymentId = 'PAY-' + now;
+  const updates = {
+    [`users/${uid}/courses/${courseId}`]: {
+      courseId, courseTitle: course.title, price: Number(amount) || 0,
+      enrolledAt: now, approvedBy: auth.currentUser.uid
+    },
+    [`enrollments/${courseId}/${uid}`]: { uid, enrolledAt: now },
+    [`payments/${paymentId}`]: {
+      paymentId, uid, courseId, courseTitle: course.title,
+      amount: Number(amount) || 0, method, status: 'completed', createdAt: now
+    }
+  };
+  const req = await database.ref(`requests/${uid}/${courseId}`).once('value');
+  if (req.exists()) {
+    updates[`requests/${uid}/${courseId}/status`] = 'approved';
+    updates[`requests/${uid}/${courseId}/updatedAt`] = now;
+  }
+  await database.ref().update(updates);
   return paymentId;
 }
 
+async function rejectRequest(uid, courseId) {
+  await database.ref(`requests/${uid}/${courseId}`).update({
+    status: 'rejected', updatedAt: Date.now()
+  });
+}
+
+/* Quita el acceso a un curso (no borra el pago registrado) */
+async function revokeCourse(uid, courseId) {
+  const updates = {
+    [`users/${uid}/courses/${courseId}`]: null,
+    [`enrollments/${courseId}/${uid}`]: null
+  };
+  const req = await database.ref(`requests/${uid}/${courseId}`).once('value');
+  if (req.exists()) {
+    updates[`requests/${uid}/${courseId}/status`] = 'revoked';
+    updates[`requests/${uid}/${courseId}/updatedAt`] = Date.now();
+  }
+  await database.ref().update(updates);
+}
+
 /* ══════════════════════════════════════════════════════════════
-   REGLAS DE SEGURIDAD (copiar en Firebase Console → RTDB → Reglas)
+   REGLAS DE SEGURIDAD — copiar en Firebase Console → Realtime Database → Reglas
 ══════════════════════════════════════════════════════════════
 
 {
   "rules": {
+    "admins": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".write": false,
+      "$uid": { ".read": "$uid === auth.uid" }
+    },
     "users": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
       "$uid": {
-        ".read":  "$uid === auth.uid",
-        ".write": "$uid === auth.uid"
-      }
-    },
-    "certificates": {
-      ".read": true,
-      "$certId": {
-        ".write": "auth !== null"
-      }
-    },
-    "enrollments": {
-      ".read": "auth !== null",
-      "$courseId": {
-        "$uid": {
-          ".write": "$uid === auth.uid"
+        ".read": "$uid === auth.uid",
+        ".write": "(auth != null && root.child('admins').child(auth.uid).val() === true) || ($uid === auth.uid && !data.exists() && !newData.child('courses').exists() && !newData.child('certificates').exists() && !newData.child('progress').exists())",
+        "role": { ".validate": "newData.val() === 'student' || root.child('admins').child(auth.uid).val() === true" },
+        "name": { ".write": "$uid === auth.uid", ".validate": "newData.isString() && newData.val().length <= 120" },
+        "phone": { ".write": "$uid === auth.uid", ".validate": "newData.isString() && newData.val().length <= 30" },
+        "progress": { ".write": "$uid === auth.uid" },
+        "certificates": {
+          "$courseId": { ".write": "$uid === auth.uid && !data.exists() && root.child('users').child($uid).child('courses').child($courseId).exists()" }
         }
       }
     },
-    "payments": {
-      "$paymentId": {
-        ".read":  "auth !== null",
-        ".write": "auth !== null"
+    "requests": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        "$courseId": {
+          ".write": "(auth != null && root.child('admins').child(auth.uid).val() === true) || ($uid === auth.uid && (!data.exists() || data.child('status').val() !== 'approved') && newData.child('status').val() === 'pending')"
+        }
       }
+    },
+    "certificates": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "$certId": {
+        ".read": true,
+        ".write": "auth != null && !data.exists() && newData.child('uid').val() === auth.uid && root.child('users').child(auth.uid).child('courses').child(newData.child('courseId').val()).exists()"
+      }
+    },
+    "enrollments": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "payments": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
     }
   }
 }
 
 ══════════════════════════════════════════════════════════════ */
 
-/* Exportar para uso global */
 window.ElhyFirebase = {
-  auth, database,
+  auth, database, SITE_URL, WHATSAPP_NUMBER, COURSE_CATALOG,
   registerUser, loginUser, loginWithGoogle, logoutUser,
   resetPassword, onAuthStateChanged,
-  getUserProfile, updateUserProfile,
-  enrollCourse, getUserCourses, isEnrolled,
-  getProgress, markModuleComplete,
-  saveCertificate, getUserCertificates, validateCertificate,
-  getAllUsers, getTotalEnrollments, savePayment
+  ensureUserProfile, getUserProfile, updateUserProfile,
+  requestCourse, getMyRequests, whatsappPaymentLink,
+  getUserCourses, isEnrolled,
+  getAllProgress, saveLessonComplete,
+  issueCertificate, getUserCertificates, validateCertificate, certificateUrl,
+  isAdmin, getAllUsers, getAllRequests, getAllPayments, getAllCertificates,
+  approveCourse, rejectRequest, revokeCourse
 };

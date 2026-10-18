@@ -214,6 +214,7 @@
     <span class="progress-text" id="progress-text">0% completado</span>
     <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
   </div>
+  <button class="topbar-btn" id="btn-admin" style="display:none" onclick="location.href='admin.html'"><i class="fas fa-shield-alt"></i> Admin</button>
   <button class="topbar-btn" onclick="location.href='index.html'"><i class="fas fa-home"></i> Inicio</button>
   <button class="topbar-btn" style="border-color:rgba(220,50,50,.5);color:#ff8080" onclick="confirmLogout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
 </header>
@@ -244,12 +245,11 @@
     <div id="home-panel" class="course-home">
       <h2>Mi aprendizaje</h2>
       <p>Continúa donde lo dejaste o elige un nuevo curso</p>
+      <div id="pending-requests"></div>
       <div class="my-courses-grid" id="my-courses-grid">
         <div class="empty-state">
-          <i class="fas fa-graduation-cap"></i>
-          <h3>Aún no tienes cursos</h3>
-          <p>Explora el catálogo y empieza a aprender hoy</p>
-          <a href="index.html#cursos" class="btn-browse"><i class="fas fa-search"></i> Explorar cursos</a>
+          <i class="fas fa-spinner fa-spin"></i>
+          <h3>Cargando tus cursos…</h3>
         </div>
       </div>
     </div>
@@ -620,43 +620,138 @@ const COURSES_DATA = {
   }
 };
 
-/* Demo courses for enrolled students */
-const DEMO_ENROLLED = ['ia-cero','chatgpt-auto','cobranza-ia'];
-
 /* ── State ── */
 let currentCourse = null;
 let currentModule = null;
 let currentLesson = null;
-let completedLessons = {};
+let completedLessons = {};   // { courseId: { lessonId: timestamp } }
 let currentUser = null;
+let userProfile = null;
+let enrolledIds = [];        // cursos habilitados por el admin
+let myRequests = {};         // solicitudes del alumno
 let flatLessons = []; // all lessons flattened
+
+const CATALOG = ElhyFirebase.COURSE_CATALOG;
 
 /* ── Auth ── */
 ElhyFirebase.onAuthStateChanged(async user => {
   if (!user) { location.replace('login.html'); return; }
   currentUser = user;
-  loadUserData();
+  try {
+    await loadUserData();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('my-courses-grid').innerHTML =
+      `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>No se pudieron cargar tus cursos</h3><p>Revisa tu conexión y recarga la página.</p></div>`;
+  }
 });
 
-function loadUserData() {
-  const stored = JSON.parse(localStorage.getItem('elhyai_progress') || '{}');
-  completedLessons = stored;
+async function loadUserData() {
+  userProfile = await ElhyFirebase.ensureUserProfile(currentUser);
+  enrolledIds = Object.keys(userProfile.courses || {});
+  completedLessons = await ElhyFirebase.getAllProgress(currentUser.uid);
+  myRequests = await ElhyFirebase.getMyRequests(currentUser.uid);
+
+  await migrateLocalProgress();
+
+  /* Curso pedido antes de registrarse / iniciar sesión */
+  const pending = localStorage.getItem('elhyai_pending_course');
+  if (pending) {
+    localStorage.removeItem('elhyai_pending_course');
+    if (CATALOG[pending] && !enrolledIds.includes(pending)) {
+      await ElhyFirebase.requestCourse(pending);
+      myRequests = await ElhyFirebase.getMyRequests(currentUser.uid);
+      showToast('Solicitud enviada. Envía tu comprobante por WhatsApp');
+    }
+  }
+
+  renderPendingRequests();
   renderMyCourses();
+
+  if (await ElhyFirebase.isAdmin(currentUser.uid)) {
+    document.getElementById('btn-admin').style.display = '';
+  }
+
+  /* ?curso=ID abre el curso solo si está habilitado */
+  const courseParam = new URLSearchParams(location.search).get('curso');
+  if (courseParam && enrolledIds.includes(courseParam) && COURSES_DATA[courseParam]) {
+    openCourse(courseParam);
+  }
+}
+
+/* Sube a Firebase el progreso que antes se guardaba solo en este navegador */
+async function migrateLocalProgress() {
+  let local;
+  try { local = JSON.parse(localStorage.getItem('elhyai_progress') || '{}'); } catch { local = {}; }
+  const jobs = [];
+  Object.keys(local).forEach(cid => {
+    if (!enrolledIds.includes(cid) || !COURSES_DATA[cid]) return;
+    Object.keys(local[cid] || {}).forEach(lid => {
+      if (!completedLessons[cid]) completedLessons[cid] = {};
+      if (completedLessons[cid][lid]) return;
+      completedLessons[cid][lid] = local[cid][lid];
+      jobs.push(ElhyFirebase.saveLessonComplete(currentUser.uid, cid, lid, getCourseProgress(cid)));
+    });
+  });
+  if (jobs.length) await Promise.all(jobs);
+  localStorage.removeItem('elhyai_progress');
+}
+
+/* ── Solicitudes pendientes ── */
+function renderPendingRequests() {
+  const box = document.getElementById('pending-requests');
+  const items = Object.values(myRequests).filter(r =>
+    (r.status === 'pending' || r.status === 'rejected') && !enrolledIds.includes(r.courseId));
+  if (!items.length) { box.innerHTML = ''; return; }
+
+  box.innerHTML = items.map(r => {
+    const c = CATALOG[r.courseId] || { title: r.courseTitle, price: r.price, emoji: '📘' };
+    const rejected = r.status === 'rejected';
+    return `
+    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;background:${rejected ? '#fef2f2' : '#fffbeb'};border:1px solid ${rejected ? '#fecaca' : '#fde68a'};border-radius:8px;padding:1rem 1.25rem;margin-bottom:1rem">
+      <div style="font-size:1.75rem">${c.emoji}</div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:700;color:var(--primary)">${c.title} · $${c.price}</div>
+        <div style="font-size:.82rem;color:var(--grey-1)">
+          ${rejected
+            ? 'Tu solicitud no fue aprobada. Escríbenos por WhatsApp para revisarla.'
+            : 'Pendiente de aprobación. Envía tu comprobante de pago por WhatsApp y habilitaremos el curso.'}
+        </div>
+      </div>
+      <a href="${ElhyFirebase.whatsappPaymentLink(r.courseId, currentUser)}" target="_blank" rel="noopener"
+         style="padding:.55rem 1.1rem;background:#25d366;color:#fff;border-radius:4px;font-weight:700;font-size:.85rem;display:inline-flex;align-items:center;gap:.45rem">
+        <i class="fab fa-whatsapp"></i> ${rejected ? 'Contactar' : 'Enviar comprobante'}
+      </a>
+    </div>`;
+  }).join('');
 }
 
 /* ── My courses ── */
 function renderMyCourses() {
   const grid = document.getElementById('my-courses-grid');
-  const enrolled = DEMO_ENROLLED;
+  const enrolled = enrolledIds;
 
   if (!enrolled.length) {
-    grid.innerHTML = `<div class="empty-state"><i class="fas fa-graduation-cap"></i><h3>Aún no tienes cursos</h3><p>Explora el catálogo y empieza a aprender hoy</p><a href="index.html#cursos" class="btn-browse"><i class="fas fa-search"></i> Explorar cursos</a></div>`;
+    grid.innerHTML = `<div class="empty-state"><i class="fas fa-graduation-cap"></i><h3>Aún no tienes cursos habilitados</h3><p>Elige un curso en el catálogo y solicítalo. Cuando confirmemos tu pago aparecerá aquí.</p><a href="index.html#cursos" class="btn-browse"><i class="fas fa-search"></i> Explorar cursos</a></div>`;
     return;
   }
 
   grid.innerHTML = enrolled.map(id => {
     const c = COURSES_DATA[id];
-    if (!c) return '';
+    if (!c) {
+      const meta = CATALOG[id] || { title: id, emoji: '📘', category: '' };
+      return `
+      <div class="my-course-card" style="cursor:default" onclick="showToast('El contenido de este curso se está preparando')">
+        <div class="my-course-thumb" style="background:#1e3a5f15">${meta.emoji}</div>
+        <div class="my-course-body">
+          <div class="my-course-cat">${meta.category}</div>
+          <div class="my-course-title">${meta.title}</div>
+          <div class="my-course-cta" style="margin-top:1rem">
+            <span><i class="fas fa-hourglass-half"></i> Contenido en preparación</span>
+          </div>
+        </div>
+      </div>`;
+    }
     const prog = getCourseProgress(id);
     const bgColors = {'ia':'#1e3a5f15','cobranza':'#dc262615','marketing':'#7c3aed15','herramientas':'#0284c715','datos':'#d9770615'};
     const bg = bgColors[c.category?.toLowerCase()] || '#1e3a5f15';
@@ -689,6 +784,10 @@ function getCourseProgress(courseId) {
 
 /* ── Open course ── */
 function openCourse(courseId) {
+  if (!enrolledIds.includes(courseId)) {
+    showToast('Este curso aún no está habilitado en tu cuenta');
+    return;
+  }
   currentCourse = COURSES_DATA[courseId];
   if (!currentCourse) return;
 
@@ -894,7 +993,11 @@ function completeLesson() {
   // Mark complete
   if (!completedLessons[courseId]) completedLessons[courseId] = {};
   completedLessons[courseId][lessonId] = Date.now();
-  localStorage.setItem('elhyai_progress', JSON.stringify(completedLessons));
+  ElhyFirebase.saveLessonComplete(currentUser.uid, courseId, lessonId, getCourseProgress(courseId))
+    .catch(err => {
+      console.error(err);
+      showToast('⚠️ No se pudo guardar el progreso. Revisa tu conexión');
+    });
 
   // Update UI
   const li = document.getElementById('li-' + lessonId);
@@ -976,12 +1079,29 @@ function saveNote() {
 }
 
 /* ── Certificate ── */
-function downloadCertificate() {
+async function downloadCertificate() {
   if (!currentUser || !currentCourse) return;
-  const name = currentUser.displayName || 'Estudiante';
-  const course = currentCourse.title;
-  const date = new Date().toLocaleDateString('es-EC', {year:'numeric',month:'long',day:'numeric'});
-  const code = 'ELHYAI-' + Math.random().toString(36).substr(2,10).toUpperCase();
+  if (getCourseProgress(currentCourse.id) < 100) return;
+
+  const btn = document.getElementById('btn-download-cert');
+  btn.disabled = true;
+  let cert;
+  try {
+    cert = await ElhyFirebase.issueCertificate(
+      currentUser.uid, currentCourse.id, currentCourse.title,
+      (userProfile && userProfile.name) || currentUser.displayName || 'Estudiante');
+  } catch (err) {
+    console.error(err);
+    showToast('⚠️ No se pudo emitir el certificado. Intenta de nuevo');
+    btn.disabled = false;
+    return;
+  }
+  btn.disabled = false;
+
+  const name = cert.studentName;
+  const course = cert.courseTitle;
+  const date = new Date(cert.issuedAt).toLocaleDateString('es-EC', {year:'numeric',month:'long',day:'numeric'});
+  const code = cert.certId;
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
@@ -1035,7 +1155,15 @@ function downloadCertificate() {
 
   doc.setFontSize(8);
   doc.setTextColor(150,150,150);
-  doc.text(`Verificar en: capacitaciones.elhyai.com/validar?code=${code}`, 148.5, 172, {align:'center'});
+  doc.text(`Verificar en: ${ElhyFirebase.certificateUrl(code).replace('https://','')}`, 148.5, 172, {align:'center'});
+
+  // QR de verificación
+  if (window.QRCode) {
+    const holder = document.createElement('div');
+    new QRCode(holder, { text: ElhyFirebase.certificateUrl(code), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M });
+    const qrCanvas = holder.querySelector('canvas');
+    if (qrCanvas) doc.addImage(qrCanvas.toDataURL('image/png'), 'PNG', 257, 170, 24, 24);
+  }
 
   doc.save(`Certificado-ElhyAI-${course.substring(0,20)}.pdf`);
   showToast('🎉 Certificado descargado');
@@ -1067,11 +1195,7 @@ function confirmLogout() {
 
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const courseParam = urlParams.get('curso');
-  if (courseParam && COURSES_DATA[courseParam]) {
-    setTimeout(() => openCourse(courseParam), 500);
-  }
+  // ?curso=ID se abre en loadUserData(), cuando ya se conocen los cursos habilitados
   // Auto-save notes
   document.getElementById('notes-area').addEventListener('blur', saveNote);
 });

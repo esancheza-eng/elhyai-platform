@@ -437,14 +437,6 @@
     <!-- Platform stats -->
     <div class="platform-stats">
       <div class="stat-box">
-        <div class="stat-val" id="s-certs">1,247</div>
-        <div class="stat-lbl">Certificados emitidos</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-val" id="s-verify">856</div>
-        <div class="stat-lbl">Verificaciones</div>
-      </div>
-      <div class="stat-box">
         <div class="stat-val">100%</div>
         <div class="stat-lbl">Autenticidad</div>
       </div>
@@ -460,7 +452,7 @@
 
   <!-- Recent verifications -->
   <div class="recent-section">
-    <p class="recent-title"><i class="fas fa-history" style="margin-right:.4rem"></i>Verificaciones recientes</p>
+    <p class="recent-title"><i class="fas fa-history" style="margin-right:.4rem"></i>Tus verificaciones recientes</p>
     <div class="recent-list" id="recent-list">
       <!-- Filled by JS -->
     </div>
@@ -483,55 +475,8 @@
 <script src="app.js"></script>
 <script>
 
-/* ── Demo certificate database ─────────────────────── */
-const DEMO_CERTS = {
-  'ELHYAI-A1B2C3D4E5F6': {
-    studentName: 'Carlos Andrés Vásquez',
-    course: 'Inteligencia Artificial desde Cero',
-    issueDate: '15 de Marzo, 2026',
-    expiryDate: 'Sin vencimiento',
-    credentialId: 'ELHYAI-A1B2C3D4E5F6',
-    instructor: 'Ing. Luis Ibarra',
-    platform: 'ElhyAI',
-    modules: 10,
-    duration: '18 horas',
-    grade: '95/100',
-    status: 'valid'
-  },
-  'ELHYAI-X9Y8Z7W6V5U4': {
-    studentName: 'María Fernanda López',
-    course: 'Marketing Digital con IA',
-    issueDate: '22 de Febrero, 2026',
-    expiryDate: 'Sin vencimiento',
-    credentialId: 'ELHYAI-X9Y8Z7W6V5U4',
-    instructor: 'Ing. Luis Ibarra',
-    platform: 'ElhyAI',
-    modules: 8,
-    duration: '14 horas',
-    grade: '88/100',
-    status: 'valid'
-  },
-  'ELHYAI-DEMO123456': {
-    studentName: 'Estudiante Demo',
-    course: 'Cobranza Inteligente con IA',
-    issueDate: '1 de Enero, 2026',
-    expiryDate: 'Sin vencimiento',
-    credentialId: 'ELHYAI-DEMO123456',
-    instructor: 'Ing. Luis Ibarra',
-    platform: 'ElhyAI',
-    modules: 12,
-    duration: '22 horas',
-    grade: '92/100',
-    status: 'valid'
-  }
-};
-
-const RECENT_VERIFICATIONS = [
-  { code: 'ELHYAI-A1B2C3D4E5F6', name: 'Carlos Andrés Vásquez', time: 'hace 2 minutos' },
-  { code: 'ELHYAI-X9Y8Z7W6V5U4', name: 'María Fernanda López',  time: 'hace 18 minutos' },
-  { code: 'ELHYAI-P3Q2R1S0T9U8', name: 'Andrés Morales Torres', time: 'hace 1 hora' },
-  { code: 'ELHYAI-DEMO123456',   name: 'Estudiante Demo',       time: 'hace 3 horas' },
-];
+/* Los certificados se consultan en Firebase (certificates/{código}) */
+const DATE_FMT = { year: 'numeric', month: 'long', day: 'numeric' };
 
 /* ── URL param auto-validate ─────────────────────── */
 function getURLCode() {
@@ -545,6 +490,11 @@ function validateCert() {
   const code = raw.startsWith('ELHYAI-') ? raw : 'ELHYAI-' + raw;
   if (!code || code === 'ELHYAI-') {
     showError('Ingresa un código de certificado válido');
+    return;
+  }
+  if (!/^ELHYAI-[A-Z0-9]{4,20}$/.test(code)) {
+    document.getElementById('result-area').style.display = 'block';
+    showInvalid(esc(code));
     return;
   }
 
@@ -561,17 +511,42 @@ function validateCert() {
     </div>
   `;
 
-  setTimeout(() => {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-search"></i> Verificar';
+  ElhyFirebase.validateCertificate(code)
+    .then(data => {
+      const cert = data ? toViewModel(data) : null;
+      if (cert) showValid(cert);
+      else showInvalid(code);
+      addToRecent(code, data ? data.studentName : 'No encontrado', !!data);
+    })
+    .catch(err => {
+      console.error(err);
+      resultArea.innerHTML = `<div class="invalid-result"><i class="fas fa-exclamation-triangle"></i><div><h3>No se pudo consultar</h3><p>Revisa tu conexión e intenta nuevamente.</p></div></div>`;
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-search"></i> Verificar';
+    });
+}
 
-    const cert = DEMO_CERTS[code];
-    if (cert) showValid(cert);
-    else showInvalid(code);
+/* Escapa texto antes de insertarlo en la página */
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
 
-    // Add to recent
-    addToRecent(code, cert ? cert.studentName : 'Desconocido');
-  }, 1800);
+/* Adapta el registro de Firebase al formato de la tarjeta */
+function toViewModel(d) {
+  const meta = (window.ElhyFirebase && ElhyFirebase.COURSE_CATALOG[d.courseId]) || {};
+  return {
+    studentName:  esc(d.studentName),
+    course:       esc(d.courseTitle || meta.title || d.courseId),
+    issueDate:    new Date(d.issuedAt).toLocaleDateString('es-EC', DATE_FMT),
+    expiryDate:   'Sin vencimiento',
+    credentialId: esc(d.certId),
+    instructor:   'Ing. Elhy Christian Sánchez',
+    grade:        'Aprobado',
+    duration:     '',
+    modules:      ''
+  };
 }
 
 function showValid(cert) {
@@ -612,8 +587,8 @@ function showValid(cert) {
             <span class="cert-detail-value">${cert.instructor}</span>
           </div>
           <div class="cert-detail">
-            <span class="cert-detail-label">Duración</span>
-            <span class="cert-detail-value">${cert.duration} · ${cert.modules} módulos</span>
+            <span class="cert-detail-label">Plataforma</span>
+            <span class="cert-detail-value">ElhyAI Academy</span>
           </div>
           <div class="cert-detail">
             <span class="cert-detail-label">ID de Credencial</span>
@@ -663,13 +638,13 @@ function showError(msg) {
 
 /* ── Actions ─────────────────────────────────────── */
 function shareLinkedIn(code, course) {
-  const url = encodeURIComponent(`https://cursos.elhyai.com/validar?code=${code}`);
+  const url = encodeURIComponent(ElhyFirebase.certificateUrl(code));
   const title = encodeURIComponent(`Completé el curso: ${course} en ElhyAI`);
   window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&title=${title}`, '_blank');
 }
 
 function copyLink(code) {
-  const url = `https://cursos.elhyai.com/validar?code=${code}`;
+  const url = ElhyFirebase.certificateUrl(code);
   navigator.clipboard?.writeText(url).then(() => {
     showToast('Enlace copiado al portapapeles');
   }).catch(() => {
@@ -692,21 +667,25 @@ function showQRInfo() {
 /* ── Recent verifications ─────────────────────────── */
 function renderRecent() {
   const list = document.getElementById('recent-list');
-  const stored = JSON.parse(localStorage.getItem('liai_verifications') || '[]');
-  const all = [...stored, ...RECENT_VERIFICATIONS].slice(0, 5);
+  let stored = [];
+  try { stored = JSON.parse(localStorage.getItem('liai_verifications') || '[]'); } catch {}
+  const all = stored.slice(0, 5);
+  list.closest('.recent-section').style.display = all.length ? '' : 'none';
   list.innerHTML = all.map(v => `
     <div class="recent-item">
-      <i class="fas fa-check-circle"></i>
-      <span class="recent-item-code">${v.code}</span>
-      <span class="recent-item-name">${v.name}</span>
-      <span class="recent-item-time">${v.time}</span>
+      <i class="fas ${v.ok === false ? 'fa-times-circle' : 'fa-check-circle'}" style="${v.ok === false ? 'color:#e74c3c' : ''}"></i>
+      <span class="recent-item-code">${esc(v.code)}</span>
+      <span class="recent-item-name">${esc(v.name)}</span>
+      <span class="recent-item-time">${new Date(v.at || Date.now()).toLocaleDateString('es-EC')}</span>
     </div>
   `).join('');
 }
 
-function addToRecent(code, name) {
-  const stored = JSON.parse(localStorage.getItem('liai_verifications') || '[]');
-  stored.unshift({ code, name, time: 'ahora mismo' });
+function addToRecent(code, name, ok) {
+  let stored = [];
+  try { stored = JSON.parse(localStorage.getItem('liai_verifications') || '[]'); } catch {}
+  stored = stored.filter(v => v.code !== code);
+  stored.unshift({ code, name, ok, at: Date.now() });
   localStorage.setItem('liai_verifications', JSON.stringify(stored.slice(0, 10)));
   renderRecent();
 }
@@ -726,8 +705,6 @@ function animateCounter(el, target, duration = 1200) {
 document.addEventListener('DOMContentLoaded', () => {
   window.LIAI?.initNavbar?.();
   renderRecent();
-  animateCounter(document.getElementById('s-certs'),  1247);
-  animateCounter(document.getElementById('s-verify'),  856);
 
   // Auto-validate from URL
   const urlCode = getURLCode();

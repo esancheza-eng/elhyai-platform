@@ -607,13 +607,13 @@
     <!-- ─── SUCCESS ─── -->
     <div class="step-panel" id="step-success">
       <div class="success-screen">
-        <div class="success-icon"><i class="fas fa-check"></i></div>
-        <h2>¡Contraseña actualizada!</h2>
-        <p>Tu contraseña ha sido cambiada exitosamente.<br>Ya puedes iniciar sesión con tus nuevas credenciales.</p>
+        <div class="success-icon"><i class="fas fa-envelope-open-text"></i></div>
+        <h2>¡Revisa tu correo!</h2>
+        <p>Te enviamos un enlace a <strong id="sent-email"></strong> para crear una nueva contraseña.<br>Ábrelo, elige tu nueva contraseña y luego inicia sesión.</p>
         <br>
         <div class="info-box success-box" style="text-align:left;margin-bottom:1.5rem">
-          <i class="fas fa-check-circle"></i>
-          <span>Tu cuenta está segura. Si no realizaste este cambio, contacta soporte de inmediato.</span>
+          <i class="fas fa-info-circle"></i>
+          <span>Si no lo ves en unos minutos, revisa la carpeta de spam o correo no deseado.</span>
         </div>
         <button class="btn-recover" onclick="location.href='login.html'">
           <i class="fas fa-sign-in-alt"></i> Ir a iniciar sesión
@@ -863,10 +863,12 @@ window.sendCode = async function() {
   try {
     await ElhyFirebase.resetPassword(email);
     const parts = email.split('@');
-    document.getElementById('masked-email').textContent = parts[0].substring(0,2) + '***@' + parts[1];
-    goStep(2);
-    startResendTimer();
-    document.querySelector('.otp-input').focus();
+    document.getElementById('sent-email').textContent = parts[0].substring(0,2) + '***@' + parts[1];
+    /* Firebase envía un enlace por correo; no hay código de 6 dígitos */
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('step-success').classList.add('active');
+    const dots = document.getElementById('dot-1')?.parentElement;
+    if (dots) dots.style.display = 'none';
   } catch(e) {
     setLoading('btn-step1', false);
     const msgs = { 'auth/user-not-found': 'No existe cuenta con ese correo', 'auth/invalid-email': 'Correo inválido' };

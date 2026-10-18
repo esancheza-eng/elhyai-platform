@@ -1239,7 +1239,7 @@ const CATALOG = [
     durHours: 15
   },
   {
-    id: 'finanzas-personales', emoji: '💳',
+    id: 'finanzas', emoji: '💳',
     title: 'Finanzas Personales e Inversión',
     category: 'datos',
     desc: 'Gestiona tu dinero de forma inteligente: presupuesto, deudas, inversión y libertad financiera con IA.',
@@ -1254,7 +1254,7 @@ const CATALOG = [
     durHours: 12
   },
   {
-    id: 'productivity-ia', emoji: '⏱️',
+    id: 'productivity', emoji: '⏱️',
     title: 'Productividad con IA',
     category: 'herramientas',
     desc: 'Organiza tu vida y trabajo con Notion, Todoist, IA generativa y sistemas de productividad probados.',
@@ -1269,7 +1269,7 @@ const CATALOG = [
     durHours: 9
   },
   {
-    id: 'ecommerce-ia', emoji: '🛒',
+    id: 'ecommerce', emoji: '🛒',
     title: 'E-Commerce con IA',
     category: 'marketing',
     desc: 'Crea y escala tu tienda online usando IA para logística, atención al cliente, precios dinámicos y más.',
@@ -1527,11 +1527,21 @@ function toggleWishlist(btn) {
   btn.innerHTML = btn.classList.contains('active') ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
 }
 
-function handleBuy(id) {
-  const user = window.LIAI?.getCurrentUser?.();
-  if (!user) { location.href = 'login.html'; return; }
-  const c = CATALOG.find(x => x.id === id);
-  alert(`Redirigiendo al pago para: ${c.title} – $${c.price}`);
+async function handleBuy(id) {
+  const user = ElhyFirebase.auth.currentUser;
+  if (!user) {
+    /* Se retoma la solicitud en el dashboard después de iniciar sesión */
+    localStorage.setItem('elhyai_pending_course', id);
+    location.href = 'login.html';
+    return;
+  }
+  try {
+    await ElhyFirebase.requestCourse(id);
+    location.href = 'dashboard.html';
+  } catch (err) {
+    console.error(err);
+    alert('No se pudo enviar la solicitud. Intenta nuevamente o escríbenos por WhatsApp.');
+  }
 }
 
 function subscribeNewsletter() {
@@ -1547,13 +1557,14 @@ document.addEventListener('DOMContentLoaded', () => {
   window.LIAI?.initNavbar?.();
   window.LIAI?.initBackToTop?.();
   // Auth-aware nav
-  const user = window.LIAI?.getCurrentUser?.();
-  if (user) {
+  ElhyFirebase.onAuthStateChanged(user => {
+    if (!user) return;
+    const first = (user.displayName || 'Estudiante').split(' ')[0];
     document.querySelector('.nav-actions').innerHTML = `
-      <span style="color:var(--gold);font-size:.85rem">Hola, ${user.name.split(' ')[0]}</span>
+      <span style="color:var(--gold);font-size:.85rem">Hola, ${first}</span>
       <button class="btn-primary" onclick="location.href='dashboard.html'">Mi Panel</button>
     `;
-  }
+  });
   renderCatalog();
 });
 </script>

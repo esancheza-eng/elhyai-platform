@@ -481,8 +481,13 @@ function filterByCategory(cat,el){
 }
 function filterCourses(v){renderCourses(v);}
 
+let modalCourseId=null;
 function openModal(id){
   const c=COURSES.find(x=>x.id===id);if(!c)return;
+  modalCourseId=id;
+  const cat=ElhyFirebase.COURSE_CATALOG[id];
+  const eb=document.querySelector('.btn-enroll-m');
+  if(eb)eb.innerHTML='<i class="fas fa-graduation-cap"></i> Inscribirme'+(cat?' · $'+cat.price:'');
   document.getElementById('m-cat').textContent=c.emoji+' '+c.category.toUpperCase()+' · '+c.level;
   document.getElementById('m-title').textContent=c.title;
   document.getElementById('m-desc').textContent=c.desc;
@@ -499,7 +504,28 @@ function closeModal(e){
   document.getElementById('modal-overlay').classList.remove('open');
   document.body.style.overflow='';
 }
-function enrollNow(){location.href=localStorage.getItem('elhyai_user')?'dashboard.html':'registro.html';}
+async function enrollNow(){
+  if(!modalCourseId)return;
+  const user=ElhyFirebase.auth.currentUser;
+  if(!user){
+    /* Se retoma la solicitud en el dashboard después de registrarse */
+    localStorage.setItem('elhyai_pending_course',modalCourseId);
+    location.href='registro.html';
+    return;
+  }
+  const btn=document.querySelector('.btn-enroll-m');
+  btn.disabled=true;
+  btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Enviando solicitud…';
+  try{
+    await ElhyFirebase.requestCourse(modalCourseId);
+    location.href='dashboard.html';
+  }catch(err){
+    console.error(err);
+    alert('No se pudo enviar la solicitud. Intenta nuevamente o escríbenos por WhatsApp.');
+    btn.disabled=false;
+    btn.innerHTML='<i class="fas fa-graduation-cap"></i> Inscribirme ahora';
+  }
+}
 
 ElhyFirebase.onAuthStateChanged(user=>{
   if(user){

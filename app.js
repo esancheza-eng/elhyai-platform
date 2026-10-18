@@ -536,7 +536,7 @@ async function generateCertificate(studentName, courseName, courseId) {
       const qrEl = document.getElementById('cert-qr');
       qrEl.innerHTML = '';
       new QRCode(qrEl, {
-        text: `https://cursos.elhyai.com/validar?code=${generateCertCode(courseId)}`,
+        text: `https://academy.elhyai.com/validar.html?code=${generateCertCode(courseId)}`,
         width: 70, height: 70,
         colorDark: '#c9a84c', colorLight: '#050d1a'
       });
